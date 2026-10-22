@@ -127,7 +127,7 @@ GUIA_FIRESTORE.md                   Patrones de Firestore para copiar y adaptar
 | Etiqueta                                        | Responsable    | Estado   |
 | ----------------------------------------------- | -------------- | -------- |
 | `FIREBASE-CONFIG`, `AUTH-CORREO`, `AUTH-GOOGLE` | Dueño del repo | ✅ Hecho |
-| `CHECKOUT`, `PEDIDOS`                           |                | ⏳       |
 | `FAVORITOS`, `DIRECCIONES`                      |                | ⏳       |
-| `PAGOS`, `PDF` (parte 1)                        |                | ⏳       |
-| `PERFIL`, `PDF` (parte 2)                       |                | ⏳       |
+| `PAGOS`, CHECKOUT                               |                | ⏳       |
+| `PEDIDOS`, `PERFIL`                             |                | ⏳       |
+| `PDF`                                           |                | ⏳       |
