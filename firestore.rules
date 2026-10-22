@@ -1,0 +1,42 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Cada usuario solo puede ver y modificar SUS propios datos.
+    match /usuarios/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+
+      // Al crear la cuenta el rol solo puede ser CLIENTE.
+      allow create: if request.auth != null && request.auth.uid == uid
+                    && request.resource.data.rol == "CLIENTE";
+
+      // El rol no se puede cambiar desde la app (el admin se asigna en la consola de Firebase).
+      allow update: if request.auth != null && request.auth.uid == uid
+                    && request.resource.data.rol == resource.data.rol;
+
+      allow delete: if false;
+
+      match /favoritos/{id} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+
+      match /direcciones/{id} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+
+      match /metodosPago/{id} {
+        allow read, delete: if request.auth != null && request.auth.uid == uid;
+        // Solo marca y ultimos 4 digitos; nunca el numero completo.
+        allow create, update: if request.auth != null && request.auth.uid == uid
+                              && request.resource.data.ultimos4 is string
+                              && request.resource.data.ultimos4.size() == 4;
+      }
+
+      // Los pedidos se pueden crear y leer, pero no editar ni borrar.
+      match /pedidos/{id} {
+        allow read, create: if request.auth != null && request.auth.uid == uid;
+        allow update, delete: if false;
+      }
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "404025190152",
+    "project_id": "kafecito-456",
+    "storage_bucket": "kafecito-456.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:404025190152:android:6b148da471acbfb37aaebd",
+        "android_client_info": {
+          "package_name": "com.kafecito.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "404025190152-agji6hhnroes2f6rmdir478epsgek4ej.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.kafecito.app",
+            "certificate_hash": "45c29fd16e3cc82eda718e63c80aad6f78914c52"
+          }
+        },
+        {
+          "client_id": "404025190152-1hokd2s27t117ac8g78hvl7n1pcfvdh3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA6F1J_vDb_v46z1UjOAYSvGhZ0LBxe-cw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "404025190152-1hokd2s27t117ac8g78hvl7n1pcfvdh3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
