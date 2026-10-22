@@ -13,7 +13,7 @@ Proyecto Kotlin + Jetpack Compose basado en el Figma KAFECITO APP.
 1. Abrir la carpeta del proyecto desde Android Studio (**Open**) y esperar el Gradle Sync.
 2. **⚠️ Importante (Error de Java):** Si al sincronizar sale el error _"Incompatible Gradle JVM version"_:
    - Ve a **File → Settings → Build, Execution, Deployment → Build Tools → Gradle**.
-   - En **Gradle JDK**, selecciona una versión compatible (**17** o **21**). Si no tienes ninguna, elige **"Download JDK..."** en ese mismo menú.
+   - En **Gradle JDK**, selecciona una versión compatible (**21**). Si no tienes ninguna, elige **"Download JDK..."** en ese mismo menú.
    - Dale a **Apply / OK** y vuelve a sincronizar con el ícono del elefantito (Sync Project).
 3. Si Android Studio muestra _"Project update recommended"_ (AGP Upgrade Assistant), **ignóralo**: no es un error y actualizar puede romper el proyecto.
 4. Ejecutar en un celular por USB (con depuración USB activada) y **con internet**: la app usa Firebase.
@@ -71,7 +71,6 @@ Además, para la entrega del Avance 2:
 - "Repetir" no modifica el pedido viejo: carga sus productos al carrito y al pagar se crea uno nuevo.
 - **No cambiar el rol desde la app.** El rol de admin se asigna a mano en la consola de Firebase; las reglas lo impiden.
 - **El carrito no se guarda en Firestore.** Vive en memoria y se pierde al cerrar la app; solo el pedido confirmado queda guardado.
-- **No reemplazar `app/google-services.json`.** Ya es el real del proyecto de Firebase.
 
 ---
 
@@ -115,7 +114,6 @@ GUIA_FIRESTORE.md                   Patrones de Firestore para copiar y adaptar
 
 - Cada integrante trabaja en **su propia rama** (`git checkout -b nombre-tarea`), nunca directo en `main`.
 - Al terminar: commit, push y Pull Request; el dueño del repositorio revisa y hace el merge.
-- Todos deben quedar como colaboradores del repositorio y con commits propios (requisito de la entrega final).
 - `NavGraph.kt` y `ProfileScreen.kt` los tocan varios módulos (`FAVORITOS`, `PERFIL`): hacer cambios **pequeños** y avisar en el grupo para evitar conflictos.
 - **Orden de merge:**
   1. ✅ `FIREBASE-CONFIG` + `AUTH-CORREO` + `AUTH-GOOGLE` (ya hecho)
@@ -123,7 +121,6 @@ GUIA_FIRESTORE.md                   Patrones de Firestore para copiar y adaptar
   3. `CHECKOUT`
   4. `PEDIDOS`
   5. `PERFIL`
-  6. `PDF` y `VIDEO`
 
 ### Responsables
 
