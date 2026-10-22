@@ -11,14 +11,13 @@ Proyecto Kotlin + Jetpack Compose basado en el Figma KAFECITO APP.
 ## Cómo abrirlo
 
 1. Abrir la carpeta del proyecto desde Android Studio (**Open**) y esperar el Gradle Sync.
-2. **⚠️ Importante (Error de Java):** Si al sincronizar sale el error *"Incompatible Gradle JVM version"*:
+2. **⚠️ Importante (Error de Java):** Si al sincronizar sale el error _"Incompatible Gradle JVM version"_:
    - Ve a **File → Settings → Build, Execution, Deployment → Build Tools → Gradle**.
    - En **Gradle JDK**, selecciona una versión compatible (**17** o **21**). Si no tienes ninguna, elige **"Download JDK..."** en ese mismo menú.
    - Dale a **Apply / OK** y vuelve a sincronizar con el ícono del elefantito (Sync Project).
-3. Si Android Studio muestra *"Project update recommended"* (AGP Upgrade Assistant), **ignóralo**: no es un error y actualizar puede romper el proyecto.
-4. Después de cada `git pull`: **Sync** y **Build → Clean Project**.
-5. Ejecutar en un celular por USB (con depuración USB activada) y **con internet**: la app usa Firebase.
-6. **Usuario de prueba** (ya existe en Firebase): `admin@kafecito.com` / `123456`. También se puede crear una cuenta nueva en "Crear cuenta" o entrar con Google.
+3. Si Android Studio muestra _"Project update recommended"_ (AGP Upgrade Assistant), **ignóralo**: no es un error y actualizar puede romper el proyecto.
+4. Ejecutar en un celular por USB (con depuración USB activada) y **con internet**: la app usa Firebase.
+5. **Usuario de prueba** (ya existe en Firebase): `admin@kafecito.com` / `123456`. También se puede crear una cuenta nueva en "Crear cuenta" o entrar con Google.
 
 > **No reemplazar `app/google-services.json`.** Ya es el real del proyecto de Firebase (`kafecito-456`). Si se sobrescribe con otro (o con el placeholder), Firebase deja de funcionar.
 
@@ -42,20 +41,20 @@ Los patrones de Firestore que se repiten (leer lista, agregar, borrar, contar) e
 - Pantallas con la interfaz armada y **datos de ejemplo**: Favoritos, Mis direcciones, Métodos de pago, Pagar y Mis pedidos.
 - Navegación con todas las rutas: el menú del Perfil abre sus pantallas, "Ir a Pagar" llega a Pagar y la barra inferior es Home, Contacto, Favoritos, Perfil.
 
-### 
-Para conectar tu módulo a Firestore, sigue los pasos de **`GUIA_FIRESTORE.md`**.
----
+###
+
+## Para conectar tu módulo a Firestore, sigue los pasos de **`GUIA_FIRESTORE.md`**.
 
 ## Qué falta (etiquetas)
 
-| Etiqueta | Dónde | Qué hay que hacer |
-|---|---|---|
-| `TODO(FAVORITOS)` | `FavoritosRepository.kt`, `FavoritosScreen.kt`, `ProductDetailScreen.kt`, `NavGraph.kt` | Corazón en el Detalle, pantalla Favoritos real y marcar o desmarcar en Firestore. |
-| `TODO(DIRECCIONES)` | `DireccionRepository.kt`, `DireccionesScreen.kt` | Listar, agregar y borrar direcciones, con validación del formulario. |
-| `TODO(PAGOS)` | `MetodoPagoRepository.kt`, `MetodosPagoScreen.kt` | Listar, agregar y borrar métodos de pago (simulado). Solo se guardan la marca y los últimos 4 dígitos, nunca el número completo. |
-| `TODO(CHECKOUT)` | `PagarScreen.kt`, `PedidoRepository.kt` | Elegir "Recoger en tienda" o "A domicilio" (con una dirección guardada), elegir método de pago (incluida la opción fija "Efectivo en tienda"; manejar la lista vacía de tarjetas), mostrar el resumen y, al confirmar, crear el pedido en Firestore y vaciar el carrito. |
-| `TODO(PEDIDOS)` | `PedidoRepository.kt`, `PedidosScreen.kt` | Historial desde Firestore, del más nuevo al más viejo. El botón "Repetir" ya está conectado en `NavGraph`. |
-| `TODO(PERFIL)` | `ProfileScreen.kt` | Estadísticas reales (pedidos, favoritos, puntos). Regla de puntos: 1 punto por cada $1 del total (`PedidoRepository.puntosDe`). |
+| Etiqueta            | Dónde                                                                                   | Qué hay que hacer                                                                                                                                                                                                                                                        |
+| ------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `TODO(FAVORITOS)`   | `FavoritosRepository.kt`, `FavoritosScreen.kt`, `ProductDetailScreen.kt`, `NavGraph.kt` | Corazón en el Detalle, pantalla Favoritos real y marcar o desmarcar en Firestore.                                                                                                                                                                                        |
+| `TODO(DIRECCIONES)` | `DireccionRepository.kt`, `DireccionesScreen.kt`                                        | Listar, agregar y borrar direcciones, con validación del formulario.                                                                                                                                                                                                     |
+| `TODO(PAGOS)`       | `MetodoPagoRepository.kt`, `MetodosPagoScreen.kt`                                       | Listar, agregar y borrar métodos de pago (simulado). Solo se guardan la marca y los últimos 4 dígitos, nunca el número completo.                                                                                                                                         |
+| `TODO(CHECKOUT)`    | `PagarScreen.kt`, `PedidoRepository.kt`                                                 | Elegir "Recoger en tienda" o "A domicilio" (con una dirección guardada), elegir método de pago (incluida la opción fija "Efectivo en tienda"; manejar la lista vacía de tarjetas), mostrar el resumen y, al confirmar, crear el pedido en Firestore y vaciar el carrito. |
+| `TODO(PEDIDOS)`     | `PedidoRepository.kt`, `PedidosScreen.kt`                                               | Historial desde Firestore, del más nuevo al más viejo. El botón "Repetir" ya está conectado en `NavGraph`.                                                                                                                                                               |
+| `TODO(PERFIL)`      | `ProfileScreen.kt`                                                                      | Estadísticas reales (pedidos, favoritos, puntos). Regla de puntos: 1 punto por cada $1 del total (`PedidoRepository.puntosDe`).                                                                                                                                          |
 
 Además, para la entrega del Avance 2:
 
@@ -68,23 +67,23 @@ Además, para la entrega del Avance 2:
 
 - **No pasar el catálogo a Firestore.** El catálogo sigue **local** en el Avance 2; se pasará con el admin de la Entrega Final. Por eso `CHECKOUT` tampoco descuenta stock.
 - **No guardar números reales de tarjeta.** Los métodos de pago son **simulados**: solo se guardan la marca y los últimos 4 dígitos, y no se procesa ningún cobro.
-- **No editar ni borrar pedidos.** Los pedidos solo se pueden **crear y leer**; las reglas de Firestore bloquean lo demás (`PERMISSION_DENIED`). 
+- **No editar ni borrar pedidos.** Los pedidos solo se pueden **crear y leer**; las reglas de Firestore bloquean lo demás (`PERMISSION_DENIED`).
 - "Repetir" no modifica el pedido viejo: carga sus productos al carrito y al pagar se crea uno nuevo.
 - **No cambiar el rol desde la app.** El rol de admin se asigna a mano en la consola de Firebase; las reglas lo impiden.
 - **El carrito no se guarda en Firestore.** Vive en memoria y se pierde al cerrar la app; solo el pedido confirmado queda guardado.
 - **No reemplazar `app/google-services.json`.** Ya es el real del proyecto de Firebase.
 
 ---
+
 ## Firebase (proyecto `kafecito-456`)
 
 - Todos los celulares usan el mismo proyecto mediante `app/google-services.json` (ya viene en el repo, no reemplazarlo).
 - Para probar, entrar con el usuario de prueba `admin@kafecito.com` / `123456`. No hace falta configurar nada más.
 - Como todos comparten ese usuario, verán los mismos datos. Para datos propios, registrarse con un correo distinto.
 - Si quieren ver sus datos en Firebase (**Firestore → Datos**), pedirle acceso al dueño del repo.
-- **Botón de Google (opcional, no es necesario para trabajar):** quien quiera probarlo debe pasarle su **SHA-1** al dueño del repo. 
-- Se obtiene con `./gradlew signingReport` (línea `SHA1:` de `Variant: debug`). 
+- **Botón de Google (opcional, no es necesario para trabajar):** quien quiera probarlo debe pasarle su **SHA-1** al dueño del repo.
+- Se obtiene con `./gradlew signingReport` (línea `SHA1:` de `Variant: debug`).
 - El dueño lo agrega en Firebase (⚙ Configuración del proyecto → Tus apps → Agregar huella digital). No hay que volver a descargar el JSON
-
 
 ---
 
@@ -128,12 +127,10 @@ GUIA_FIRESTORE.md                   Patrones de Firestore para copiar y adaptar
 
 ### Responsables
 
-| Etiqueta | Responsable | Estado |
-|---|---|---|
+| Etiqueta                                        | Responsable    | Estado   |
+| ----------------------------------------------- | -------------- | -------- |
 | `FIREBASE-CONFIG`, `AUTH-CORREO`, `AUTH-GOOGLE` | Dueño del repo | ✅ Hecho |
-| `CHECKOUT`, `PEDIDOS` |  | ⏳ |
-| `FAVORITOS`, `DIRECCIONES` |  | ⏳ |
-| `PAGOS`, `PDF` (parte 1) |  | ⏳ |
-| `PERFIL`, `PDF` (parte 2) |  | ⏳ |
-
-
+| `CHECKOUT`, `PEDIDOS`                           |                | ⏳       |
+| `FAVORITOS`, `DIRECCIONES`                      |                | ⏳       |
+| `PAGOS`, `PDF` (parte 1)                        |                | ⏳       |
+| `PERFIL`, `PDF` (parte 2)                       |                | ⏳       |
