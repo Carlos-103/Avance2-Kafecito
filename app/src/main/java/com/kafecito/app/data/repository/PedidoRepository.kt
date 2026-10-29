@@ -1,7 +1,7 @@
 package com.kafecito.app.data.repository
 
-import android.util.Log
 import com.kafecito.app.data.model.Pedido
+import kotlinx.coroutines.tasks.await
 
 /**
  * Pedidos del usuario: usuarios/{uid}/pedidos/{id}.
@@ -13,11 +13,17 @@ object PedidoRepository {
     /** Regla de puntos: 1 punto por cada $1 del total (hacia abajo). Ya funciona. */
     fun puntosDe(total: Double): Int = total.toInt()
 
-    // TODO(CHECKOUT): guardar el pedido (patron "agregar") y devolver el id creado.
-    // Despues de guardarlo, quien llama debe vaciar el carrito (carritoVM.vaciar()).
+    /**
+     * Guarda el pedido en usuarios/{uid}/pedidos y devuelve el id creado.
+     * Quien llama debe vaciar el carrito despues (carritoVM.vaciar()).
+     * Si falla lanza una excepcion, asi no se vacia el carrito sin haber guardado nada.
+     */
     suspend fun crear(pedido: Pedido): String {
-        Log.w("PedidoRepository", "crear() pendiente: TODO(CHECKOUT). El pedido NO se guardo.")
-        return ""
+        require(pedido.items.isNotEmpty()) { "El pedido no tiene productos" }
+        val uid = FirestorePaths.uidActual()
+        val ref = FirestorePaths.pedidos(uid).document()   // Firestore genera el id
+        ref.set(pedido.copy(id = ref.id)).await()
+        return ref.id
     }
 
     // TODO(PEDIDOS): patron "leer lista" ordenada del mas nuevo al mas viejo:

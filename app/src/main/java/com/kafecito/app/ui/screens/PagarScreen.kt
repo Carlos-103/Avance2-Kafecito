@@ -11,11 +11,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.kafecito.app.data.model.MetodoPago
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.kafecito.app.data.model.Direccion
+import com.kafecito.app.data.model.Pedido
+import com.kafecito.app.data.model.aPedidoItems
 import com.kafecito.app.ui.components.KafeTopBar
 import com.kafecito.app.ui.theme.*
 import com.kafecito.app.util.comoDinero
 import com.kafecito.app.viewmodel.CarritoViewModel
+import com.kafecito.app.viewmodel.PagarViewModel
+
+/** Id fijo de la opción "Efectivo en tienda" (siempre disponible, no se guarda en Firestore). */
+private const val ID_EFECTIVO = "EFECTIVO"
+private const val TEXTO_EFECTIVO = "Efectivo en tienda"
 
 /** Pantalla de pago: tipo de entrega, método de pago y resumen del pedido. */
 @Composable
@@ -24,10 +32,21 @@ fun PagarScreen(
     onAtras: () -> Unit,
     onPedidoCreado: () -> Unit
 ) {
+    val vm: PagarViewModel = viewModel()
+
     var entrega by remember { mutableStateOf("RECOGER") }
-    // TODO(CHECKOUT): reemplazar por MetodoPagoRepository.listar() (y si es DOMICILIO, elegir una de DireccionRepository.listar()).
-    val metodos = remember { listOf(MetodoPago("1", "Visa", "4242"), MetodoPago("2", "Mastercard", "1111")) }
-    var metodoId by remember { mutableStateOf(metodos.first().id) }
+    var direccionId by remember { mutableStateOf<String?>(null) }
+    // Por defecto "Efectivo en tienda": así siempre hay un método elegido aunque no haya tarjetas.
+    var metodoId by remember { mutableStateOf(ID_EFECTIVO) }
+
+    // Dirección elegida (si no se eligió ninguna, la primera guardada).
+    val direccionSel = vm.direcciones.firstOrNull { it.id == direccionId } ?: vm.direcciones.firstOrNull()
+    // Tarjeta elegida (null si se eligió efectivo o la tarjeta ya no existe).
+    val metodoSel = vm.metodos.firstOrNull { it.id == metodoId }
+    val textoMetodo = metodoSel?.etiqueta ?: TEXTO_EFECTIVO
+
+    val sinDireccionParaDomicilio = entrega == "DOMICILIO" && direccionSel == null
+    val puedeConfirmar = carritoVM.items.isNotEmpty() && !vm.procesando && !vm.cargando && !sinDireccionParaDomicilio
 
     Column(
         modifier = Modifier
@@ -42,10 +61,34 @@ fun PagarScreen(
         OpcionRadio(texto = "Recoger en tienda", seleccionada = entrega == "RECOGER") { entrega = "RECOGER" }
         OpcionRadio(texto = "A domicilio", seleccionada = entrega == "DOMICILIO") { entrega = "DOMICILIO" }
 
+        if (entrega == "DOMICILIO") {
+            Spacer(modifier = Modifier.height(16.dp))
+            Text("Dirección de entrega", color = KafeGray)
+            if (vm.direcciones.isEmpty()) {
+                Text(
+                    text = "No tienes direcciones guardadas. Agrégalas en Perfil → Mis direcciones.",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            } else {
+                vm.direcciones.forEach { d ->
+                    OpcionRadio(texto = textoDireccion(d), seleccionada = direccionSel?.id == d.id) { direccionId = d.id }
+                }
+            }
+        }
+
         Spacer(modifier = Modifier.height(16.dp))
         Text("Método de pago", color = KafeGray)
-        metodos.forEach { m ->
-            OpcionRadio(texto = m.etiqueta, seleccionada = metodoId == m.id) { metodoId = m.id }
+        OpcionRadio(texto = TEXTO_EFECTIVO, seleccionada = metodoSel == null) { metodoId = ID_EFECTIVO }
+        vm.metodos.forEach { m ->
+            OpcionRadio(texto = m.etiqueta, seleccionada = metodoSel?.id == m.id) { metodoId = m.id }
+        }
+        if (!vm.cargando && vm.metodos.isEmpty()) {
+            Text(
+                text = "No tienes tarjetas guardadas. Puedes agregarlas en Perfil → Métodos de pago.",
+                color = KafeGray,
+                style = MaterialTheme.typography.bodySmall
+            )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -54,20 +97,42 @@ fun PagarScreen(
         FilaTotal("IVA (13%)", carritoVM.iva)
         FilaTotal("TOTAL", carritoVM.total, destacado = true)
 
+        vm.error?.let {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = it, color = MaterialTheme.colorScheme.error)
+        }
+
         Spacer(modifier = Modifier.height(20.dp))
         Button(
             onClick = {
-                // TODO(CHECKOUT): al confirmar:
-                //  1. armar un Pedido (items = carritoVM.items.aPedidoItems(), subtotal, iva, total, tipoEntrega, metodoPago, fecha = System.currentTimeMillis())
-                //  2. PedidoRepository.crear(pedido)   (en una corrutina, desde un ViewModel)
-                //  3. carritoVM.vaciar()
-                //  4. onPedidoCreado()
+                // Se toma una "foto" del carrito en este momento y se guarda el pedido.
+                val pedido = Pedido(
+                    fecha = System.currentTimeMillis(),
+                    tipoEntrega = entrega,
+                    direccion = if (entrega == "DOMICILIO") direccionSel?.let { textoDireccion(it) }.orEmpty() else "",
+                    metodoPago = textoMetodo,
+                    items = carritoVM.items.aPedidoItems(),
+                    subtotal = carritoVM.subtotal,
+                    iva = carritoVM.iva,
+                    total = carritoVM.total
+                )
+                // Solo si se guardó bien se vacía el carrito y se pasa a "Mis pedidos".
+                vm.confirmar(pedido) {
+                    carritoVM.vaciar()
+                    onPedidoCreado()
+                }
             },
-            enabled = carritoVM.items.isNotEmpty(),
+            enabled = puedeConfirmar,
             colors = ButtonDefaults.buttonColors(containerColor = KafeWhite, contentColor = KafeBlack),
             modifier = Modifier.fillMaxWidth().height(48.dp)
-        ) { Text("CONFIRMAR PEDIDO") }
+        ) { Text(if (vm.procesando) "CONFIRMANDO..." else "CONFIRMAR PEDIDO") }
     }
+}
+
+/** Texto de una dirección, por ejemplo "Casa: Calle 1, San Salvador (frente al parque)". */
+private fun textoDireccion(d: Direccion): String {
+    val base = "${d.alias}: ${d.calle}, ${d.ciudad}"
+    return if (d.referencia.isBlank()) base else "$base (${d.referencia})"
 }
 
 @Composable
