@@ -16,19 +16,45 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.kafecito.app.data.model.Producto
-import com.kafecito.app.ui.theme.*
+import com.kafecito.app.data.repository.FavoritosRepository
 import com.kafecito.app.ui.components.ProductoImagen
-
-
+import com.kafecito.app.ui.theme.*
+import kotlinx.coroutines.launch
 @Composable
 fun ProductDetailScreen(
     producto: Producto?,
     onAtras: () -> Unit,
-    onAgregar: (Producto, Int) -> Unit,
-    // TODO(FAVORITOS): pasar el estado real desde NavGraph (FavoritosRepository.listar()) y marcar/desmarcar en Firestore.
-    esFavorito: Boolean = false,
-    onToggleFavorito: () -> Unit = {}
+    onAgregar: (Producto, Int) -> Unit
 ) {
+    val scope = rememberCoroutineScope()
+
+    // Estado de favorito. Se reinicia si cambia el producto.
+    var esFavorito by remember(producto?.id) { mutableStateOf(false) }
+    var favoritoCargado by remember(producto?.id) { mutableStateOf(false) }
+
+    // Consulta en Firestore si el producto ya es favorito al abrir la pantalla
+    LaunchedEffect(producto?.id) {
+        if (producto != null) {
+            esFavorito = FavoritosRepository.esFavorito(producto.id)
+            favoritoCargado = true
+        }
+    }
+
+    // Alterna el favorito con actualización optimista: cambia la UI al instante
+    // y revierte si Firestore falla.
+    fun alternarFavorito(p: Producto) {
+        val nuevoEstado = !esFavorito
+        esFavorito = nuevoEstado
+        scope.launch {
+            try {
+                if (nuevoEstado) FavoritosRepository.agregar(p.id)
+                else FavoritosRepository.quitar(p.id)
+            } catch (e: Exception) {
+                esFavorito = !nuevoEstado
+            }
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -44,10 +70,13 @@ fun ProductDetailScreen(
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás", tint = KafeWhite)
             }
             if (producto != null) {
-                IconButton(onClick = onToggleFavorito) {
+                IconButton(
+                    onClick = { alternarFavorito(producto) },
+                    enabled = favoritoCargado
+                ) {
                     Icon(
                         imageVector = if (esFavorito) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                        contentDescription = "Favorito",
+                        contentDescription = if (esFavorito) "Quitar de favoritos" else "Agregar a favoritos",
                         tint = KafeWhite
                     )
                 }

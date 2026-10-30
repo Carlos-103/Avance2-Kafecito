@@ -1,32 +1,42 @@
 package com.kafecito.app.data.repository
 
-/**
- * Favoritos del usuario: usuarios/{uid}/favoritos/{productoId}.
- * El id del documento es el id del producto, asi no se puede repetir.
- * Patrones en GUIA_FIRESTORE.md.
- *
- * Mientras no se implemente cada funcion devuelve un valor seguro (lista vacia o 0)
- * para que la app no se caiga si otra pantalla ya la llama.
- */
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
+
 object FavoritosRepository {
 
-    // TODO(FAVORITOS): patron "leer lista". Devuelve los ids de producto favoritos.
+    private val db = FirebaseFirestore.getInstance()
+
+    // Colección de favoritos del usuario actual (null si no hay sesión)
+    private fun favoritosRef() = FirebaseAuth.getInstance().currentUser?.uid?.let { uid ->
+        db.collection("usuarios").document(uid).collection("favoritos")
+    }
+
     suspend fun listar(): List<Int> {
-        return emptyList()
+        val ref = favoritosRef() ?: return emptyList()
+        return ref.get().await().documents.mapNotNull { it.id.toIntOrNull() }
     }
 
-    // TODO(FAVORITOS): patron "agregar" (con document(productoId.toString()).set(...)).
     suspend fun agregar(productoId: Int) {
-        // Pendiente.
+        val ref = favoritosRef() ?: return
+        ref.document(productoId.toString())
+            .set(mapOf("productoId" to productoId))
+            .await()
     }
 
-    // TODO(FAVORITOS): patron "borrar".
     suspend fun quitar(productoId: Int) {
-        // Pendiente.
+        val ref = favoritosRef() ?: return
+        ref.document(productoId.toString()).delete().await()
     }
 
-    // TODO(FAVORITOS): patron "contar" (se usa en las estadisticas del Perfil).
     suspend fun contar(): Int {
-        return 0
+        val ref = favoritosRef() ?: return 0
+        return ref.get().await().size()
+    }
+
+    suspend fun esFavorito(productoId: Int): Boolean {
+        val ref = favoritosRef() ?: return false
+        return ref.document(productoId.toString()).get().await().exists()
     }
 }
