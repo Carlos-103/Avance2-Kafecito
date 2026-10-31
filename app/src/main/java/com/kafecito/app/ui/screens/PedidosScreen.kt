@@ -7,48 +7,41 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kafecito.app.data.model.Pedido
-import com.kafecito.app.data.model.PedidoItem
 import com.kafecito.app.ui.components.KafeTopBar
 import com.kafecito.app.ui.theme.*
 import com.kafecito.app.util.comoDinero
 import com.kafecito.app.util.comoFecha
-/** Historial de pedidos. Solo lectura: no agregar botones de editar o borrar. */
-/** Historial de pedidos. Hoy usa datos de ejemplo. */
+import com.kafecito.app.viewmodel.PedidosViewModel
+
+/** Historial de pedidos desde Firestore (mas nuevo primero). Solo lectura: no agregar botones de editar o borrar. */
 @Composable
 fun PedidosScreen(
     onAtras: () -> Unit,
     onRepetir: (Pedido) -> Unit
 ) {
-    // TODO(PEDIDOS): reemplazar por PedidoRepository.listar() (mas nuevo primero) en un ViewModel.
-    val pedidos = remember {
-        val ahora = System.currentTimeMillis()
-        listOf(
-            Pedido(
-                id = "A2", fecha = ahora - 86_400_000L, tipoEntrega = "DOMICILIO", metodoPago = "Visa \u2022\u2022\u2022\u2022 4242",
-                items = listOf(PedidoItem(5, "Desayuno tipico", 7.00, 1), PedidoItem(2, "Café Americano", 2.00, 1)),
-                subtotal = 9.00, iva = 1.17, total = 10.17
-            ),
-            Pedido(
-                id = "A1", fecha = ahora - 5 * 86_400_000L, tipoEntrega = "RECOGER", metodoPago = "Mastercard \u2022\u2022\u2022\u2022 1111",
-                items = listOf(PedidoItem(1, "Capuccino", 2.50, 2)),
-                subtotal = 5.00, iva = 0.65, total = 5.65
-            )
-        )
-    }
+    val vm: PedidosViewModel = viewModel()
+    val pedidos = vm.pedidos
 
     Column(modifier = Modifier.fillMaxSize().background(KafeBlack).padding(20.dp)) {
         KafeTopBar(titulo = "MIS PEDIDOS", onAtras = onAtras)
 
-        if (pedidos.isEmpty()) {
-            Text("Aún no has hecho pedidos", color = KafeGray)
-        } else {
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        when {
+            vm.cargando -> CircularProgressIndicator(color = KafeWhite)
+
+            vm.error != null -> Column {
+                Text(vm.error ?: "", color = KafeGray)
+                TextButton(onClick = { vm.cargar() }) { Text("Reintentar", color = KafeWhite) }
+            }
+
+            pedidos.isEmpty() -> Text("Aún no has hecho pedidos", color = KafeGray)
+
+            else -> LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 items(pedidos, key = { it.id }) { pedido ->
                     Column(
                         modifier = Modifier
