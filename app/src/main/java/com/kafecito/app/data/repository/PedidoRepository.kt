@@ -1,5 +1,7 @@
 package com.kafecito.app.data.repository
 
+import com.google.firebase.firestore.AggregateSource
+import com.google.firebase.firestore.Query
 import com.kafecito.app.data.model.Pedido
 import kotlinx.coroutines.tasks.await
 
@@ -26,14 +28,26 @@ object PedidoRepository {
         return ref.id
     }
 
-    // TODO(PEDIDOS): patron "leer lista" ordenada del mas nuevo al mas viejo:
-    // pedidos(uid).orderBy("fecha", Query.Direction.DESCENDING)
+    /** Historial del usuario, del mas nuevo al mas viejo. */
     suspend fun listar(): List<Pedido> {
-        return emptyList()
+        val uid = FirestorePaths.uidActual()
+        val snap = FirestorePaths.pedidos(uid)
+            .orderBy("fecha", Query.Direction.DESCENDING)
+            .get()
+            .await()
+        // Se copia el id del documento al objeto.
+        return snap.documents.mapNotNull { doc ->
+            doc.toObject(Pedido::class.java)?.copy(id = doc.id)
+        }
     }
 
-    // TODO(PERFIL): patron "contar" (estadisticas del Perfil).
+    /** Cantidad de pedidos del usuario (estadisticas del Perfil). */
     suspend fun contar(): Int {
-        return 0
+        val uid = FirestorePaths.uidActual()
+        val resultado = FirestorePaths.pedidos(uid).count().get(AggregateSource.SERVER).await()
+        return resultado.count.toInt()
     }
+
+    /** Puntos acumulados: se aplica puntosDe() a cada pedido y se suman. */
+    suspend fun puntosTotales(): Int = listar().sumOf { puntosDe(it.total) }
 }

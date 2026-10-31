@@ -13,17 +13,20 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kafecito.app.data.repository.AuthRepository
 import com.kafecito.app.ui.components.KafeHeader
 import com.kafecito.app.ui.theme.*
+import com.kafecito.app.viewmodel.PerfilViewModel
 
 /**
- * Pantalla de perfil: datos del usuario, estadísticas, menú y cerrar sesión.
+ * Pantalla de perfil: datos del usuario, estadísticas reales, menú y cerrar sesión.
  */
 @Composable
 fun ProfileScreen(
@@ -31,8 +34,12 @@ fun ProfileScreen(
     onAbrirDirecciones: () -> Unit,
     onAbrirMetodosPago: () -> Unit,
     onAbrirFavoritos: () -> Unit,
-    onCerrarSesion: () -> Unit
+    onCerrarSesion: () -> Unit,
+    vm: PerfilViewModel = viewModel()
 ) {
+    // Recarga las estadísticas cada vez que se entra al Perfil.
+    LaunchedEffect(Unit) { vm.cargar() }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -72,13 +79,11 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // TODO(PERFIL): reemplazar los 3 numeros por datos reales:
-            // PedidoRepository.contar(), FavoritosRepository.contar() y
-            // puntos = suma de PedidoRepository.puntosDe(total) de cada pedido.
+            // Estadísticas reales: pedidos, favoritos y puntos (1 punto por cada $1 de cada pedido).
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                Estadistica(valor = 2, etiqueta = "Pedidos")
-                Estadistica(valor = 2, etiqueta = "Favoritos")
-                Estadistica(valor = 15, etiqueta = "Puntos")
+                Estadistica(valor = vm.pedidos, etiqueta = "Pedidos")
+                Estadistica(valor = vm.favoritos, etiqueta = "Favoritos")
+                Estadistica(valor = vm.puntos, etiqueta = "Puntos")
             }
 
             Spacer(modifier = Modifier.height(20.dp))
