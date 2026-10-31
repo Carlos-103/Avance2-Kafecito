@@ -33,9 +33,13 @@ fun ProductDetailScreen(
     var favoritoCargado by remember(producto?.id) { mutableStateOf(false) }
 
     // Consulta en Firestore si el producto ya es favorito al abrir la pantalla
-    LaunchedEffect(producto?.id) {
+ LaunchedEffect(producto?.id) {
         if (producto != null) {
-            esFavorito = FavoritosRepository.esFavorito(producto.id)
+            try {
+                esFavorito = FavoritosRepository.esFavorito(producto.id)
+            } catch (e: Exception) {
+                // Si falla, se queda sin marcar; el usuario aún puede tocar el corazón.
+            }
             favoritoCargado = true
         }
     }
