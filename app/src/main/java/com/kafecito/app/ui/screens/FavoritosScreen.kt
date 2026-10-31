@@ -29,19 +29,26 @@ import kotlinx.coroutines.launch
 fun FavoritosScreen(onAbrirDetalle: (Int) -> Unit) {
     val favoritos = remember { mutableStateListOf<Producto>() }
     var cargando by remember { mutableStateOf(true) }
+    var error by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
 
     // Carga inicial: ids guardados -> productos reales
-    LaunchedEffect(Unit) {
-        val ids = FavoritosRepository.listar()
-        favoritos.clear()
-        favoritos.addAll(ids.mapNotNull { KafecitoRepository.obtenerProducto(it) })
+LaunchedEffect(Unit) {
+        try {
+            val ids = FavoritosRepository.listar()
+            favoritos.clear()
+            favoritos.addAll(ids.mapNotNull { KafecitoRepository.obtenerProducto(it) })
+        } catch (e: Exception) {
+            error = "No se pudieron cargar tus favoritos"
+        }
         cargando = false
     }
 
     Column(modifier = Modifier.fillMaxSize().background(KafeBlack)) {
         KafeHeader { Text(text = "FAVORITOS", style = MaterialTheme.typography.titleMedium) }
-
+        error?.let {
+            Text(text = it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(horizontal = 20.dp))
+        }
         when {
             cargando -> Box(
                 modifier = Modifier.fillMaxSize(),
@@ -65,9 +72,13 @@ fun FavoritosScreen(onAbrirDetalle: (Int) -> Unit) {
                         producto = producto,
                         onClick = { onAbrirDetalle(producto.id) },
                         onQuitar = {
-                            scope.launch {                                  // <- corrutina
-                                FavoritosRepository.quitar(producto.id)     // ya compila
-                                favoritos.removeAll { it.id == producto.id }
+                            scope.launch {
+                                try {
+                                    FavoritosRepository.quitar(producto.id)
+                                    favoritos.removeAll { it.id == producto.id }
+                                } catch (e: Exception) {
+                                    error = "No se pudo quitar el favorito"
+                                }
                             }
                         }
                     )
