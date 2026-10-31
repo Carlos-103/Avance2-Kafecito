@@ -19,6 +19,8 @@ import com.kafecito.app.ui.components.KafeFilaTarjeta
 import com.kafecito.app.ui.components.KafeTopBar
 import com.kafecito.app.ui.theme.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
+import kotlin.time.Duration.Companion.seconds
 
 /** Pantalla "Mis direcciones": lista, agrega, edita y borra direcciones en Firestore. */
 @Composable
@@ -59,7 +61,7 @@ fun DireccionesScreen(onAtras: () -> Unit) {
         var mensajeError: String? = null
         try {
             direcciones.clear()
-            direcciones.addAll(DireccionRepository.listar())
+            direcciones.addAll(withTimeout(15.seconds) { DireccionRepository.listar() })
         } catch (e: Exception) {
             mensajeError = "No se pudieron cargar tus direcciones"
         }
@@ -78,15 +80,18 @@ fun DireccionesScreen(onAtras: () -> Unit) {
             var mensajeError: String? = null
             try {
                 if (idEditando == null) {
-                    val nueva = DireccionRepository.agregar(alias.trim(), calle.trim(), ciudad.trim())
+                    val nueva = withTimeout(15.seconds) {
+                        DireccionRepository.agregar(alias.trim(), calle.trim(), ciudad.trim()) }
                     direcciones.add(nueva)
                 } else {
-                    val actualizada = DireccionRepository.actualizar(
-                        id = idEditando,
-                        alias = alias.trim(),
-                        calle = calle.trim(),
-                        ciudad = ciudad.trim()
-                    )
+                     val actualizada = withTimeout(15.seconds) {
+                        DireccionRepository.actualizar(
+                            id = idEditando,
+                            alias = alias.trim(),
+                            calle = calle.trim(),
+                            ciudad = ciudad.trim()
+                        )
+                    }
                     val indice = direcciones.indexOfFirst { it.id == idEditando }
                     if (indice >= 0) direcciones[indice] = actualizada
                 }
@@ -104,7 +109,7 @@ fun DireccionesScreen(onAtras: () -> Unit) {
         scope.launch {
             var mensajeError: String? = null
             try {
-                DireccionRepository.borrar(d.id)
+                withTimeout(15.seconds) { DireccionRepository.borrar(d.id) }
                 direcciones.removeAll { it.id == d.id }
                 // Si se estaba editando la dirección borrada, salir del modo edición
                 if (editandoId == d.id) limpiarFormulario()
