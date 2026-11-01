@@ -1,7 +1,6 @@
 package com.kafecito.app.data.repository
 
 import com.kafecito.app.data.model.Producto
-import com.kafecito.app.data.model.Usuario
 import com.kafecito.app.R
 
 /**
@@ -9,39 +8,6 @@ import com.kafecito.app.R
  * Los datos se mantienen mientras la aplicación está abierta y se pierden al cerrarla.
  */
 object KafecitoRepository {
-
-    private val usuarios = mutableListOf(
-        Usuario(1, "David", "admin@kafecito.com", "123456")
-    )
-    private var usuarioActual: Usuario? = null
-
-    /** Registra una cuenta nueva.
-     * Devuelve null si el registro fue exitoso o un mensaje si ocurrió un error. */
-    fun registrar(nombre: String, correo: String, password: String): String? {
-        if (usuarios.any { it.correo.equals(correo, ignoreCase = true) }) {
-            return "Ya existe una cuenta con ese correo"
-        }
-        val nuevo = Usuario(usuarios.size + 1, nombre, correo, password)
-        usuarios.add(nuevo)
-        usuarioActual = nuevo
-        return null
-    }
-
-    /** Inicia sesión y devuelve el usuario si las credenciales son correctas;
-     * de lo contrario, devuelve null. */
-    fun login(correo: String, password: String): Usuario? {
-        val usuario = usuarios.find {
-            it.correo.equals(correo, ignoreCase = true) && it.password == password
-        }
-        usuarioActual = usuario
-        return usuario
-    }
-
-    fun cerrarSesion() { usuarioActual = null }
-
-    fun nombreUsuarioActual(): String = usuarioActual?.nombre ?: "Invitado"
-
-    fun correoUsuarioActual(): String = usuarioActual?.correo ?: ""
 
     val categorias = listOf("Café", "Desayuno", "Postres", "Bebidas")
 

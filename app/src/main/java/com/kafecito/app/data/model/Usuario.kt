@@ -7,6 +7,7 @@ package com.kafecito.app.data.model
  * Los valores por defecto permiten que Firestore cree instancias del modelo
  * al leer los documentos.
  */
+
 data class PerfilUsuario(
     val uid: String = "",
     val nombre: String = "",
