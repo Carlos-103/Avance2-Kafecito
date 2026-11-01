@@ -6,19 +6,19 @@ import com.kafecito.app.data.model.Pedido
 import kotlinx.coroutines.tasks.await
 
 /**
- * Pedidos del usuario: usuarios/{uid}/pedidos/{id}.
- * Mientras no se implemente cada funcion devuelve un valor seguro (lista vacia o 0)
- * para que la app no se caiga si otra pantalla ya la llama.
+ * Gestiona los pedidos de cada usuario en Firestore.
+ * Permite registrar pedidos, consultar el historial y calcular puntos acumulados.
  */
 object PedidoRepository {
 
-    /** Regla de puntos: 1 punto por cada $1 del total (hacia abajo). Ya funciona. */
+    /** Calcula los puntos obtenidos: 1 punto por cada dólar del total,
+     * sin redondear hacia arriba. */
     fun puntosDe(total: Double): Int = total.toInt()
 
     /**
-     * Guarda el pedido en usuarios/{uid}/pedidos y devuelve el id creado.
-     * Quien llama debe vaciar el carrito despues (carritoVM.vaciar()).
-     * Si falla lanza una excepcion, asi no se vacia el carrito sin haber guardado nada.
+     * Guarda un pedido en Firestore y devuelve el ID del documento creado.
+     * Si ocurre un error, lanza una excepción para evitar vaciar el carrito
+     * sin haber guardado correctamente el pedido.
      */
     suspend fun crear(pedido: Pedido): String {
         require(pedido.items.isNotEmpty()) { "El pedido no tiene productos" }
@@ -28,7 +28,7 @@ object PedidoRepository {
         return ref.id
     }
 
-    /** Historial del usuario, del mas nuevo al mas viejo. */
+    /** Obtiene el historial de pedidos del usuario, ordenado del más reciente al más antiguo. */
     suspend fun listar(): List<Pedido> {
         val uid = FirestorePaths.uidActual()
         val snap = FirestorePaths.pedidos(uid)
@@ -41,13 +41,13 @@ object PedidoRepository {
         }
     }
 
-    /** Cantidad de pedidos del usuario (estadisticas del Perfil). */
+    /** Obtiene la cantidad total de pedidos del usuario para las estadísticas del perfil. */
     suspend fun contar(): Int {
         val uid = FirestorePaths.uidActual()
         val resultado = FirestorePaths.pedidos(uid).count().get(AggregateSource.SERVER).await()
         return resultado.count.toInt()
     }
 
-    /** Puntos acumulados: se aplica puntosDe() a cada pedido y se suman. */
+    /** Calcula los puntos acumulados sumando los puntos obtenidos en cada pedido. */
     suspend fun puntosTotales(): Int = listar().sumOf { puntosDe(it.total) }
 }

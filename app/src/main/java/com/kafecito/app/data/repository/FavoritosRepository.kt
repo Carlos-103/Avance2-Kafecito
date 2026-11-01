@@ -4,11 +4,15 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
+/**
+ * Gestiona los productos favoritos de cada usuario en Firestore.
+ * Cada favorito se identifica mediante el ID del producto.
+ */
 object FavoritosRepository {
 
     private val db = FirebaseFirestore.getInstance()
 
-    // Colección de favoritos del usuario actual (null si no hay sesión)
+    // Obtiene la colección de favoritos del usuario que inició sesión.
     private fun favoritosRef() = FirebaseAuth.getInstance().currentUser?.uid?.let { uid ->
         db.collection("usuarios").document(uid).collection("favoritos")
     }

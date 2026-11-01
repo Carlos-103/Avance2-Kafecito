@@ -9,7 +9,9 @@ import com.kafecito.app.data.model.Pedido
 import com.kafecito.app.data.repository.PedidoRepository
 import kotlinx.coroutines.launch
 
-/** Carga el historial de pedidos desde Firestore (mas nuevo primero). */
+/**
+ * Gestiona el historial de pedidos del usuario, ordenado del más reciente al más antiguo.
+ */
 class PedidosViewModel : ViewModel() {
     var pedidos by mutableStateOf<List<Pedido>>(emptyList())
         private set

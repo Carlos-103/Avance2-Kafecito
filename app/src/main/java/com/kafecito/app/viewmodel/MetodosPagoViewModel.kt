@@ -11,14 +11,17 @@ import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 
-/** Estado de la pantalla "Metodos de pago" (lee y escribe en Firestore). */
+/**
+ * Gestiona los métodos de pago del usuario mediante Firestore.
+ * Permite cargarlos, agregarlos y eliminarlos.
+ */
 class MetodosPagoViewModel : ViewModel() {
 
     var metodos by mutableStateOf<List<MetodoPago>>(emptyList())
         private set
     var error by mutableStateOf<String?>(null)
         private set
-    // true mientras se guarda un metodo nuevo (evita doble toque).
+    // Indica si se está guardando un metodo de pago para evitar envíos duplicados.
     var guardando by mutableStateOf(false)
         private set
 
@@ -37,8 +40,9 @@ class MetodosPagoViewModel : ViewModel() {
     }
 
     /**
-     * Valida y guarda un metodo. Devuelve true si los datos son validos
-     * (la pantalla limpia los campos); si no, deja el mensaje en [error].
+     * Valida y guarda un método de pago.
+     * Devuelve true si inicia el proceso de guardado o false si los datos no son válidos
+     * o ya hay una operación en curso.
      */
     fun agregar(marca: String, ultimos4: String): Boolean {
         if (guardando) return false
@@ -83,7 +87,7 @@ class MetodosPagoViewModel : ViewModel() {
             }
         }
     }
-
+    // Tiempo máximo de espera para las operaciones de Firestore.
     private companion object {
         const val TIEMPO_MAX_MS = 15_000L
     }

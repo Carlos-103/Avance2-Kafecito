@@ -21,11 +21,14 @@ import com.kafecito.app.util.comoDinero
 import com.kafecito.app.viewmodel.CarritoViewModel
 import com.kafecito.app.viewmodel.PagarViewModel
 
-/** Id fijo de la opción "Efectivo en tienda" (siempre disponible, no se guarda en Firestore). */
+/** ID fijo de la opción "Efectivo en tienda". No se guarda en Firestore. */
 private const val ID_EFECTIVO = "EFECTIVO"
 private const val TEXTO_EFECTIVO = "Efectivo en tienda"
 
-/** Pantalla de pago: tipo de entrega, método de pago y resumen del pedido. */
+/**
+ * Pantalla de pago que permite seleccionar el tipo de entrega,
+ * el metodo de pago y confirmar el pedido.
+ */
 @Composable
 fun PagarScreen(
     carritoVM: CarritoViewModel,
@@ -36,12 +39,12 @@ fun PagarScreen(
 
     var entrega by remember { mutableStateOf("RECOGER") }
     var direccionId by remember { mutableStateOf<String?>(null) }
-    // Por defecto "Efectivo en tienda": así siempre hay un método elegido aunque no haya tarjetas.
+    // Por defecto se selecciona "Efectivo en tienda", incluso si no hay tarjetas guardadas.
     var metodoId by remember { mutableStateOf(ID_EFECTIVO) }
 
-    // Dirección elegida (si no se eligió ninguna, la primera guardada).
+    // Utiliza la dirección seleccionada o, por defecto, la primera guardada.
     val direccionSel = vm.direcciones.firstOrNull { it.id == direccionId } ?: vm.direcciones.firstOrNull()
-    // Tarjeta elegida (null si se eligió efectivo o la tarjeta ya no existe).
+    // Si no hay una tarjeta seleccionada, se utiliza el pago en efectivo.
     val metodoSel = vm.metodos.firstOrNull { it.id == metodoId }
     val textoMetodo = metodoSel?.etiqueta ?: TEXTO_EFECTIVO
 
@@ -105,7 +108,7 @@ fun PagarScreen(
         Spacer(modifier = Modifier.height(20.dp))
         Button(
             onClick = {
-                // Se toma una "foto" del carrito en este momento y se guarda el pedido.
+                // Se toma una copia de los datos actuales del carrito para crear el pedido.
                 val pedido = Pedido(
                     fecha = System.currentTimeMillis(),
                     tipoEntrega = entrega,
@@ -116,7 +119,7 @@ fun PagarScreen(
                     iva = carritoVM.iva,
                     total = carritoVM.total
                 )
-                // Solo si se guardó bien se vacía el carrito y se pasa a "Mis pedidos".
+                // Solo si el pedido se guarda correctamente, se vacía el carrito y se abre "Mis pedidos".
                 vm.confirmar(pedido) {
                     carritoVM.vaciar()
                     onPedidoCreado()
@@ -129,7 +132,7 @@ fun PagarScreen(
     }
 }
 
-/** Texto de una dirección, por ejemplo "Casa: Calle 1, San Salvador (frente al parque)". */
+/** Construye el texto de una dirección con su alias, ubicación y referencia. */
 private fun textoDireccion(d: Direccion): String {
     val base = "${d.alias}: ${d.calle}, ${d.ciudad}"
     return if (d.referencia.isBlank()) base else "$base (${d.referencia})"

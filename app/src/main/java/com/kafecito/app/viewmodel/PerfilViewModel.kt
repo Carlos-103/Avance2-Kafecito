@@ -9,7 +9,8 @@ import com.kafecito.app.data.repository.FavoritosRepository
 import com.kafecito.app.data.repository.PedidoRepository
 import kotlinx.coroutines.launch
 
-/** Estadisticas reales del Perfil: pedidos, favoritos y puntos. */
+/** Gestiona las estadísticas del perfil:
+ * cantidad de pedidos, favoritos y puntos acumulados. */
 class PerfilViewModel : ViewModel() {
     var pedidos by mutableStateOf(0)
         private set
@@ -18,9 +19,9 @@ class PerfilViewModel : ViewModel() {
     var puntos by mutableStateOf(0)
         private set
 
+    // Cada estadística se carga de forma independiente para que un error no impida mostrar las demás.
     fun cargar() {
         viewModelScope.launch {
-            // Cada estadistica va en su propio try/catch: si una falla, las demas se muestran.
             try { pedidos = PedidoRepository.contar() } catch (e: Exception) { }
             try { favoritos = FavoritosRepository.contar() } catch (e: Exception) { }
             try { puntos = PedidoRepository.puntosTotales() } catch (e: Exception) { }

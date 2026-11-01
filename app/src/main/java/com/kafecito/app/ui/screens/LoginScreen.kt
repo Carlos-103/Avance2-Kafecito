@@ -21,9 +21,9 @@ import com.kafecito.app.ui.theme.KafeGray
 import com.kafecito.app.ui.theme.KafeWhite
 import com.kafecito.app.viewmodel.LoginViewModel
 
-/*
- * Pantalla de inicio de sesión.
- * Permite entrar con correo y contraseña o con Google (Firebase Authentication).
+/**
+ * Pantalla de inicio de sesión mediante correo electrónico
+ * y contraseña o una cuenta de Google.
  */
 @Composable
 fun LoginScreen(
@@ -31,7 +31,7 @@ fun LoginScreen(
     onAtras: () -> Unit,
     viewModel: LoginViewModel = viewModel()
 ) {
-    // Para Google hace falta la Activity (muestra el selector de cuentas).
+    // Obtiene el contexto necesario para iniciar el selector de cuentas de Google.
     val context = LocalContext.current
 
     Column(
@@ -41,7 +41,7 @@ fun LoginScreen(
             .verticalScroll(rememberScrollState())
             .padding(24.dp)
     ) {
-        // Permite regresar a la pantalla anterior.
+
         IconButton(onClick = onAtras) {
             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás", tint = KafeWhite)
         }
@@ -51,7 +51,7 @@ fun LoginScreen(
         Text(text = "Bienvenido de nuevo", color = KafeWhite, style = MaterialTheme.typography.titleLarge)
 
         Spacer(modifier = Modifier.height(32.dp))
-        // Los campos se conectan al ViewModel para mantener los datos ingresados.
+        // Los campos utilizan el ViewModel para guardar los datos ingresados.
         KafeDarkField(
             label = "Correo electrónico",
             value = viewModel.correo,
@@ -67,7 +67,7 @@ fun LoginScreen(
             esPassword = true
         )
 
-        // Recuperar contraseña: envía el correo de Firebase al correo escrito arriba.
+        // Solicita a Firebase enviar un correo para recuperar la contraseña.
         TextButton(
             onClick = viewModel::recuperarPassword,
             enabled = !viewModel.cargando,
@@ -76,18 +76,18 @@ fun LoginScreen(
             Text("¿Olvidaste tu contraseña?", color = KafeGray, style = MaterialTheme.typography.bodySmall)
         }
 
-        // El mensaje de error aparece únicamente cuando existe uno.
+
         viewModel.errorMensaje?.let {
             Text(text = it, color = MaterialTheme.colorScheme.error)
         }
-        // Mensaje informativo (por ejemplo, correo de recuperación enviado).
+
         viewModel.infoMensaje?.let {
             Text(text = it, color = KafeWhite)
         }
 
         Spacer(modifier = Modifier.height(24.dp))
         Button(
-            // Si las credenciales son válidas, se notifica el inicio de sesión exitoso.
+            // Intenta iniciar sesión y notifica al componente padre si tiene éxito.
             onClick = { viewModel.intentarLogin(onLoginExitoso) },
             enabled = !viewModel.cargando,
             colors = ButtonDefaults.buttonColors(containerColor = KafeWhite, contentColor = KafeBlack),

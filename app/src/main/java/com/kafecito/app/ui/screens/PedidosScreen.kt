@@ -18,8 +18,13 @@ import com.kafecito.app.ui.theme.*
 import com.kafecito.app.util.comoDinero
 import com.kafecito.app.util.comoFecha
 import com.kafecito.app.viewmodel.PedidosViewModel
-
-/** Historial de pedidos desde Firestore (mas nuevo primero). Solo lectura: no agregar botones de editar o borrar. */
+/**
+ * Muestra el historial de pedidos del usuario desde Firestore,
+ * ordenado del más reciente al más antiguo.
+ *
+ * Permite consultar los detalles y volver a agregar un pedido al carrito,
+ * sin modificar ni eliminar pedidos existentes.
+ */
 @Composable
 fun PedidosScreen(
     onAtras: () -> Unit,

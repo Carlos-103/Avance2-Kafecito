@@ -8,8 +8,8 @@ import androidx.compose.ui.unit.dp
 import com.kafecito.app.ui.theme.KafeWhite
 
 /**
- * Header con fondo blanco que permite organizar
- * el contenido de la parte superior de la pantalla.
+ * Encabezado con fondo blanco que organiza el contenido
+ * de la parte superior de la pantalla.
  */
 @Composable
 fun KafeHeader(content: @Composable ColumnScope.() -> Unit) {

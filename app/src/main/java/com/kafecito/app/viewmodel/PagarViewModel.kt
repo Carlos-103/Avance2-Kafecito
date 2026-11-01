@@ -15,17 +15,20 @@ import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 
-/** Estado de la pantalla Pagar: metodos y direcciones guardados + creacion del pedido. */
+/**
+ * Gestiona los métodos de pago, las direcciones guardadas
+ * y la creación de pedidos durante el proceso de pago.
+ */
 class PagarViewModel : ViewModel() {
 
     var metodos by mutableStateOf<List<MetodoPago>>(emptyList())
         private set
     var direcciones by mutableStateOf<List<Direccion>>(emptyList())
         private set
-    // true mientras se cargan metodos y direcciones.
+    // Indica si se están cargando los métodos de pago y las direcciones.
     var cargando by mutableStateOf(true)
         private set
-    // true mientras se guarda el pedido (evita crear dos pedidos con doble toque).
+    // Indica si se está guardando un pedido para evitar envíos duplicados.
     var procesando by mutableStateOf(false)
         private set
     var error by mutableStateOf<String?>(null)
@@ -35,7 +38,7 @@ class PagarViewModel : ViewModel() {
 
     private fun cargar() {
         viewModelScope.launch {
-            // Cada lista se carga por separado: si una falla, la otra y el pago en efectivo siguen funcionando.
+            // Cada lista se carga de forma independiente para que un error no impida utilizar la otra opción.
             try {
                 metodos = withTimeout(TIEMPO_MAX_MS) { MetodoPagoRepository.listar() }
             } catch (e: Exception) {
@@ -50,7 +53,7 @@ class PagarViewModel : ViewModel() {
         }
     }
 
-    /** Guarda el pedido en Firestore. Llama a [onExito] solo si se guardo correctamente. */
+    /** Guarda el pedido en Firestore y ejecuta [onExito] únicamente si se guarda correctamente. */
     fun confirmar(pedido: Pedido, onExito: () -> Unit) {
         if (procesando) return
         procesando = true
@@ -68,7 +71,7 @@ class PagarViewModel : ViewModel() {
             }
         }
     }
-
+    // Tiempo máximo de espera para las operaciones de Firestore.
     private companion object {
         const val TIEMPO_MAX_MS = 15_000L
     }

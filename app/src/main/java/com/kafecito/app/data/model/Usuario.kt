@@ -1,23 +1,16 @@
 package com.kafecito.app.data.model
 
-// Usuario del Avance 1 (en memoria, con contraseña).
-// TODO(AUTH-CORREO): al migrar a Firebase, borrar esta clase y usar PerfilUsuario.
-data class Usuario(
-    val id: Int,
-    val nombre: String,
-    val correo: String,
-    val password: String
-)
-
 /**
- * Documento usuarios/{uid} en Firestore. Nunca se guarda la contraseña
- * (eso lo maneja Firebase Authentication).
- * Los valores por defecto son necesarios para que Firestore pueda leerlo.
+ * Representa el documento usuarios/{uid} en Firestore.
+ * No almacena contraseñas, ya que Firebase Authentication se encarga de ellas.
+ *
+ * Los valores por defecto permiten que Firestore cree instancias del modelo
+ * al leer los documentos.
  */
 data class PerfilUsuario(
     val uid: String = "",
     val nombre: String = "",
     val correo: String = "",
-    // "CLIENTE" por defecto. Para ser admin se cambia a mano en la consola de Firebase.
+    // Por defecto, el usuario tiene el rol CLIENTE. Para asignar ADMIN, se cambia desde la consola de Firebase.
     val rol: String = "CLIENTE"
 )

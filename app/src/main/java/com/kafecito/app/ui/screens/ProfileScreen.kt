@@ -26,7 +26,8 @@ import com.kafecito.app.ui.theme.*
 import com.kafecito.app.viewmodel.PerfilViewModel
 
 /**
- * Pantalla de perfil: datos del usuario, estadísticas reales, menú y cerrar sesión.
+ * Muestra los datos del usuario, sus estadísticas y las opciones
+ * para gestionar su cuenta y cerrar sesión.
  */
 @Composable
 fun ProfileScreen(
@@ -37,7 +38,7 @@ fun ProfileScreen(
     onCerrarSesion: () -> Unit,
     vm: PerfilViewModel = viewModel()
 ) {
-    // Recarga las estadísticas cada vez que se entra al Perfil.
+    // Actualiza las estadísticas cada vez que se abre la pantalla de perfil.
     LaunchedEffect(Unit) { vm.cargar() }
 
     Column(
@@ -79,7 +80,7 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Estadísticas reales: pedidos, favoritos y puntos (1 punto por cada $1 de cada pedido).
+            // Muestra la cantidad de pedidos, favoritos y puntos acumulados del usuario.
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                 Estadistica(valor = vm.pedidos, etiqueta = "Pedidos")
                 Estadistica(valor = vm.favoritos, etiqueta = "Favoritos")

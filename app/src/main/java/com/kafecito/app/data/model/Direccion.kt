@@ -1,6 +1,6 @@
 package com.kafecito.app.data.model
 
-/** Documento usuarios/{uid}/direcciones/{id}. */
+/** Representa una dirección almacenada en usuarios/{uid}/direcciones/{id}. */
 data class Direccion(
     val id: String = "",
     val alias: String = "",

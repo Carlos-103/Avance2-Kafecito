@@ -38,11 +38,11 @@ object Rutas {
     fun detalle(productoId: Int) = "detalle/$productoId"
 }
 
-// Pantallas que muestran la barra de navegación inferior.
+// Rutas en las que se muestra la barra de navegación inferior.
 private val rutasConBarra = setOf(Rutas.HOME, Rutas.FAVORITOS, Rutas.CONTACTO, Rutas.PERFIL)
 
 /**
- * Mapa de navegación de toda la app.
+ * Configura la navegación entre las pantallas de Kafecito.
  *
  * Flujo principal:  Welcome -> Login / Registro -> Home -> Detalle -> Carrito
  * Barra inferior:   Home | Favoritos | Contacto | Perfil
@@ -52,10 +52,10 @@ fun KafecitoNavGraph(navController: NavHostController = rememberNavController())
     val backStackEntry by navController.currentBackStackEntryAsState()
     val rutaActual = backStackEntry?.destination?.route
 
-    // Un solo carrito compartido por Home, Detalle y Carrito.
+    // Comparte el mismo carrito entre las pantallas de Home, Detalle y Carrito.
     val carritoVM: CarritoViewModel = viewModel()
 
-    // Sesión persistente: si Firebase ya tiene un usuario, se entra directo al Home.
+    // Si ya existe una sesión de Firebase, el usuario entra directamente al Home.
     val destinoInicial = remember {
         if (AuthRepository.uidActual() != null) Rutas.HOME else Rutas.WELCOME
     }
@@ -155,8 +155,8 @@ fun KafecitoNavGraph(navController: NavHostController = rememberNavController())
             composable(Rutas.PEDIDOS) {
                 PedidosScreen(
                     onAtras = { navController.popBackStack() },
-                    // "Repetir": vuelve a cargar los productos del pedido en el carrito
-                    // (carritoVM.agregar ya respeta el stock) y abre el carrito.
+                    // Vuelve a agregar al carrito los productos de un pedido anterior.
+                    // Se respeta el stock disponible y después se abre la pantalla del carrito.
                     onRepetir = { pedido ->
                         pedido.items.forEach { item ->
                             KafecitoRepository.obtenerProducto(item.productoId)?.let { carritoVM.agregar(it, item.cantidad) }
@@ -174,6 +174,7 @@ fun KafecitoNavGraph(navController: NavHostController = rememberNavController())
                     onAbrirDirecciones = { navController.navigate(Rutas.DIRECCIONES) },
                     onAbrirMetodosPago = { navController.navigate(Rutas.METODOS_PAGO) },
                     onAbrirFavoritos = { navController.navigate(Rutas.FAVORITOS) },
+                    // Cierra la sesión, vacía el carrito y regresa a la pantalla de bienvenida.
                     onCerrarSesion = {
                         AuthRepository.cerrarSesion()
                         carritoVM.vaciar()

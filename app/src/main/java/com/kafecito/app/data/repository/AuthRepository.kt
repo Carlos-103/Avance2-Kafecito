@@ -26,12 +26,10 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.tasks.await
 
 /**
- * Autenticacion con Firebase (correo y Google).
- * Convencion (igual que KafecitoRepository.registrar del Avance 1):
- * las funciones devuelven null si todo salio bien, o el mensaje de error en español.
+ * Gestiona el registro y el inicio de sesión de los usuarios
+ * mediante correo electrónico o cuenta de Google.
  *
- * Al registrarse o iniciar sesion se asegura que exista usuarios/{uid} en Firestore
- * con rol "CLIENTE" (las reglas solo permiten crearlo con ese rol).
+ * También se encarga de mantener el perfil del usuario en Firestore.
  */
 object AuthRepository {
 
@@ -40,7 +38,7 @@ object AuthRepository {
 
     private val auth get() = FirebaseAuth.getInstance()
 
-    /** Usuario de Firebase o null. No lanza error aunque Firebase no este configurado. */
+    /** Obtiene el usuario que tiene la sesión iniciada, si existe. */
     private val usuarioActual: FirebaseUser?
         get() = try {
             FirebaseAuth.getInstance().currentUser
@@ -48,11 +46,6 @@ object AuthRepository {
             null
         }
 
-    // ------------------------------------------------------------------------
-    // SESION
-    // ------------------------------------------------------------------------
-
-    /** uid del usuario actual o null si no hay sesion. */
     fun uidActual(): String? = usuarioActual?.uid
 
     /** Nombre para mostrar en pantalla (Home, Perfil). "Invitado" si no hay sesion. */
@@ -60,10 +53,9 @@ object AuthRepository {
         usuario.displayName?.takeIf { it.isNotBlank() } ?: usuario.email?.substringBefore("@")
     } ?: "Invitado"
 
-    /** Correo del usuario actual o vacio si no hay sesion. */
     fun correoActual(): String = usuarioActual?.email ?: ""
 
-    /** Cierra la sesion de Firebase. */
+
     fun cerrarSesion() {
         try {
             FirebaseAuth.getInstance().signOut()
@@ -72,11 +64,7 @@ object AuthRepository {
         }
     }
 
-    // ------------------------------------------------------------------------
-    // CORREO
-    // ------------------------------------------------------------------------
-
-    /** Crea la cuenta con correo y contraseña, guarda el nombre y crea usuarios/{uid}. */
+    /** Registra una cuenta nueva y guarda sus datos básicos en Firebase. */
     suspend fun registrar(nombre: String, correo: String, password: String): String? {
         return try {
             val resultado = auth.createUserWithEmailAndPassword(correo, password).await()
@@ -104,7 +92,6 @@ object AuthRepository {
         }
     }
 
-    /** Envia el correo para restablecer la contraseña. */
     suspend fun recuperarPassword(correo: String): String? {
         return try {
             auth.sendPasswordResetEmail(correo).await()
@@ -115,13 +102,10 @@ object AuthRepository {
         }
     }
 
-    // ------------------------------------------------------------------------
-    // GOOGLE
-    // ------------------------------------------------------------------------
 
     /**
-     * Flujo completo de Google: muestra el selector de cuentas, obtiene el idToken
-     * y entra a Firebase. Requiere una Activity como context (usar LocalContext.current).
+     * Permite iniciar sesión con una cuenta de Google.
+     * Obtiene las credenciales seleccionadas y las utiliza para autenticar al usuario en Firebase.
      */
     suspend fun iniciarConGoogle(context: Context): String? {
         return try {
@@ -133,7 +117,10 @@ object AuthRepository {
         }
     }
 
-    /** idToken de Google -> credencial de Firebase. Si es la primera vez, crea usuarios/{uid}. */
+    /**
+     * Inicia sesión en Firebase utilizando las credenciales obtenidas de Google.
+     * Si es un usuario nuevo, crea su perfil en Firestore.
+     */
     suspend fun loginConGoogle(idToken: String): String? {
         return try {
             val credencial = GoogleAuthProvider.getCredential(idToken, null)
@@ -148,10 +135,9 @@ object AuthRepository {
 
     private class GoogleNoConfigurado : Exception("Falta el web client en google-services.json")
 
+
     private suspend fun obtenerIdTokenGoogle(context: Context): String {
-        // default_web_client_id lo genera el plugin de Google Services SOLO cuando el
-        // google-services.json real trae el cliente web (proveedor Google activado).
-        // Se busca por nombre para que el proyecto compile tambien con el placeholder.
+        // Busca el identificador del cliente web que Firebase utiliza para iniciar sesión con Google.
         val recurso = context.resources.getIdentifier("default_web_client_id", "string", context.packageName)
         if (recurso == 0) throw GoogleNoConfigurado()
 
@@ -168,13 +154,10 @@ object AuthRepository {
         throw IllegalStateException("Credencial de Google inesperada")
     }
 
-    // ------------------------------------------------------------------------
-    // PERFIL EN FIRESTORE
-    // ------------------------------------------------------------------------
-
     /**
-     * Lee usuarios/{uid}. Si el documento no existe o Firestore falla, devuelve un perfil
-     * armado con los datos de FirebaseAuth para que la pantalla no se rompa.
+     * Obtiene los datos del perfil desde Firestore.
+     * Si no están disponibles, utiliza la información de la cuenta de Firebase
+     * para que la aplicación pueda seguir funcionando.
      */
     suspend fun perfilActual(): PerfilUsuario? {
         val usuario = usuarioActual ?: return null
@@ -194,8 +177,8 @@ object AuthRepository {
     }
 
     /**
-     * Crea usuarios/{uid} con rol "CLIENTE" solo si no existe (asi nunca se pisa
-     * el rol de un admin). Si falla no bloquea el inicio de sesion.
+     * Crea el perfil del usuario si todavía no existe.
+     * Si ya está registrado, conserva sus datos y su rol actual.
      */
     private suspend fun asegurarPerfil(usuario: FirebaseUser, nombreSugerido: String? = null) {
         try {
@@ -220,11 +203,7 @@ object AuthRepository {
         }
     }
 
-    // ------------------------------------------------------------------------
-    // ERRORES
-    // ------------------------------------------------------------------------
-
-    /** Convierte cualquier excepcion de Firebase o de Google en un mensaje en español. */
+    /** Convierte los errores de Firebase y Google en mensajes fáciles de entender. */
     fun traducirError(e: Exception): String {
         Log.e(TAG, "Error de autenticacion", e)
         return when (e) {
@@ -249,7 +228,7 @@ object AuthRepository {
         }
     }
 
-    /** Las corrutinas canceladas deben propagar la cancelacion, no tratarse como error. */
+    /** Permite que las cancelaciones de corrutinas se propaguen correctamente. */
     private fun relanzarSiCancelado(e: Exception) {
         if (e is CancellationException) throw e
     }

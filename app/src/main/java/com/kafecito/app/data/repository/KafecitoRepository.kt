@@ -4,19 +4,19 @@ import com.kafecito.app.data.model.Producto
 import com.kafecito.app.data.model.Usuario
 import com.kafecito.app.R
 
-/** Repositorio en memoria (los datos se pierden al cerrar la app). */
+/**
+ * Repositorio en memoria que gestiona los usuarios y productos de Kafecito.
+ * Los datos se mantienen mientras la aplicación está abierta y se pierden al cerrarla.
+ */
 object KafecitoRepository {
-
-    // ------------------------------------------------------------------------
-    // USUARIOS
-    // ------------------------------------------------------------------------
 
     private val usuarios = mutableListOf(
         Usuario(1, "David", "admin@kafecito.com", "123456")
     )
     private var usuarioActual: Usuario? = null
 
-    /** Crea la cuenta. Devuelve null si accedio con exito, o si hubo un error. */
+    /** Registra una cuenta nueva.
+     * Devuelve null si el registro fue exitoso o un mensaje si ocurrió un error. */
     fun registrar(nombre: String, correo: String, password: String): String? {
         if (usuarios.any { it.correo.equals(correo, ignoreCase = true) }) {
             return "Ya existe una cuenta con ese correo"
@@ -27,7 +27,8 @@ object KafecitoRepository {
         return null
     }
 
-    /** Devuelve el usuario si las credenciales son correctas, o incorrectas. */
+    /** Inicia sesión y devuelve el usuario si las credenciales son correctas;
+     * de lo contrario, devuelve null. */
     fun login(correo: String, password: String): Usuario? {
         val usuario = usuarios.find {
             it.correo.equals(correo, ignoreCase = true) && it.password == password
@@ -42,9 +43,6 @@ object KafecitoRepository {
 
     fun correoUsuarioActual(): String = usuarioActual?.correo ?: ""
 
-    // ------------------------------------------------------------------------
-    // CATÁLOGO
-    // ------------------------------------------------------------------------
     val categorias = listOf("Café", "Desayuno", "Postres", "Bebidas")
 
     private val productos = listOf(

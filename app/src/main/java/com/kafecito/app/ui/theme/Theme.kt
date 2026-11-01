@@ -15,7 +15,7 @@ private val KafeColors = lightColorScheme(
     error = ErrorRed
 )
 /**
- * Aplica los colores y la tipografía de Kafecito
+ * Aplica los colores y la tipografía
  * a los componentes que se encuentran dentro del tema.
  */
 @Composable

@@ -4,11 +4,12 @@ import com.kafecito.app.data.model.MetodoPago
 import kotlinx.coroutines.tasks.await
 
 /**
- * Metodos de pago (simulados): usuarios/{uid}/metodosPago/{id}. Solo marca y ultimos 4 digitos.
+ * Gestiona los métodos de pago de cada usuario en Firestore.
+ * Solo almacena la marca y los últimos cuatro dígitos de la tarjeta.
  */
 object MetodoPagoRepository {
 
-    /** Devuelve los metodos de pago guardados del usuario con sesion. */
+    /** Obtiene los métodos de pago guardados del usuario con sesión iniciada. */
     suspend fun listar(): List<MetodoPago> {
         val uid = FirestorePaths.uidActual()
         val snap = FirestorePaths.metodosPago(uid).get().await()
@@ -19,8 +20,8 @@ object MetodoPagoRepository {
     }
 
     /**
-     * Guarda un metodo de pago. Valida marca y que ultimos4 tenga exactamente 4 digitos.
-     * Se escribe un mapa con solo los campos necesarios (nunca el numero completo).
+     * Guarda un metodo de pago después de validar la marca y los últimos cuatro dígitos.
+     * Solo almacena los datos necesarios, nunca el número completo de la tarjeta.
      */
     suspend fun agregar(metodo: MetodoPago) {
         val marca = metodo.marca.trim()
@@ -30,11 +31,11 @@ object MetodoPagoRepository {
             "Los ultimos4 deben ser exactamente 4 digitos"
         }
         val uid = FirestorePaths.uidActual()
-        val ref = FirestorePaths.metodosPago(uid).document()   // Firestore genera el id
+        val ref = FirestorePaths.metodosPago(uid).document()   // Firestore genera automáticamente el ID del documento.
         ref.set(mapOf("id" to ref.id, "marca" to marca, "ultimos4" to ultimos4)).await()
     }
 
-    /** Borra un metodo de pago por su id. */
+    /** Elimina un metodo de pago utilizando el ID de su documento en Firestore. */
     suspend fun borrar(id: String) {
         val uid = FirestorePaths.uidActual()
         FirestorePaths.metodosPago(uid).document(id).delete().await()

@@ -8,14 +8,15 @@ data class PedidoItem(
     val cantidad: Int = 0
 )
 
-/** Documento usuarios/{uid}/pedidos/{id}. */
+/** Representa un producto dentro de un pedido,
+ * conservando su nombre y precio al momento de la compra. */
 data class Pedido(
     val id: String = "",
-    // Fecha en milisegundos (System.currentTimeMillis()).
+    // Fecha del pedido en milisegundos desde el 1 de enero de 1970.
     val fecha: Long = 0L,
-    // "RECOGER" o "DOMICILIO".
+    // Tipo de entrega: "RECOGER" o "DOMICILIO".
     val tipoEntrega: String = "RECOGER",
-    // Texto de la direccion elegida cuando es a domicilio (vacio si recoge en tienda).
+    // Dirección seleccionada para entregas a domicilio. Vacía si se recoge en tienda.
     val direccion: String = "",
     val metodoPago: String = "",
     val items: List<PedidoItem> = emptyList(),
@@ -24,7 +25,7 @@ data class Pedido(
     val total: Double = 0.0
 )
 
-/** Convierte los items del carrito en items de pedido (para TODO(CHECKOUT)). */
+/** Convierte los productos del carrito en los elementos que se guardarán en el pedido. */
 fun List<ItemCarrito>.aPedidoItems(): List<PedidoItem> = map {
     PedidoItem(it.producto.id, it.producto.nombre, it.producto.precio, it.cantidad)
 }

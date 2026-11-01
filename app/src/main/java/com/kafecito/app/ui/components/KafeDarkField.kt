@@ -34,7 +34,7 @@ fun KafeDarkField(
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         // Oculta el contenido cuando el campo es para una contraseña.
         visualTransformation = if (esPassword) PasswordVisualTransformation() else VisualTransformation.None,
-        // Ajusta los colores del texto, borde, cursor y etiqueta.
+        // Configura los colores del texto, borde, cursor y etiqueta.
         colors = OutlinedTextFieldDefaults.colors(
             focusedTextColor = KafeWhite,
             unfocusedTextColor = KafeWhite,

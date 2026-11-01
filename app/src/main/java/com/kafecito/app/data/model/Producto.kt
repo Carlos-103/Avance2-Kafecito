@@ -3,7 +3,7 @@ import androidx.annotation.DrawableRes
 
 /**
  * Representa un producto del catálogo con sus datos,
- * precio, existencia e imagen opcional.
+ * precio, existencia e imagen.
  */
 data class Producto(
     val id: Int,

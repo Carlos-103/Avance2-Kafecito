@@ -18,7 +18,10 @@ import com.kafecito.app.ui.components.KafeTopBar
 import com.kafecito.app.ui.theme.*
 import com.kafecito.app.viewmodel.MetodosPagoViewModel
 
-/** Pantalla "Métodos de pago". Los datos se guardan en Firestore (usuarios/{uid}/metodosPago). */
+/**
+ * Muestra los métodos de pago guardados y permite agregar o eliminar tarjetas.
+ * Los datos se almacenan en Firestore por usuario.
+ */
 @Composable
 fun MetodosPagoScreen(onAtras: () -> Unit) {
     val vm: MetodosPagoViewModel = viewModel()
@@ -51,7 +54,7 @@ fun MetodosPagoScreen(onAtras: () -> Unit) {
         Spacer(modifier = Modifier.height(8.dp))
         KafeDarkField(label = "Marca (Visa, Mastercard...)", value = marca, onChange = { marca = it })
         Spacer(modifier = Modifier.height(8.dp))
-        // Solo se aceptan numeros y maximo 4 digitos.
+        // Limita la entrada a cuatro caracteres numéricos.
         KafeDarkField(
             label = "Últimos 4 dígitos",
             value = ultimos4,
@@ -62,7 +65,7 @@ fun MetodosPagoScreen(onAtras: () -> Unit) {
         Spacer(modifier = Modifier.height(12.dp))
         Button(
             onClick = {
-                // El ViewModel valida; si es correcto se guarda y se limpian los campos.
+                // Si la validación es correcta, se agrega el metodo y se limpian los campos.
                 if (vm.agregar(marca, ultimos4)) {
                     marca = ""
                     ultimos4 = ""
