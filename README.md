@@ -6,6 +6,10 @@ Aplicación móvil para una cafetería, desarrollada en Kotlin con Android Studi
 
 Kafecito es un proyecto en desarrollo que busca ofrecer una aplicación móvil para consultar productos de una cafetería y gestionar pedidos mediante una interfaz sencilla e intuitiva. Los datos de cada usuario se guardan en la nube con Firebase.
 
+## 📹 [Enlace Video defensa Foro 2](https://udbedu-my.sharepoint.com/:v:/g/personal/ae220430_alumno_udb_edu_sv/IQApunIQweNGRYsFNz9Pks3wAWkOXXB5GHcWdehs408AsXQ?e=htBOdx&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJTdHJlYW1XZWJBcHAiLCJyZWZlcnJhbFZpZXciOiJTaGFyZURpYWxvZy1MaW5rIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXcifX0%3D)
+## 📕 [Enlace Investigacion Foro 2](https://udbedu-my.sharepoint.com/:b:/g/personal/ag242725_alumno_udb_edu_sv/IQAVO8iHmWFqRKpwXZdfNt8WATMwuw4ez2k1hT2BQ7EKU0Q?e=3CLZtO)
+
+
 ## Tecnologías utilizadas
 
 * Kotlin
