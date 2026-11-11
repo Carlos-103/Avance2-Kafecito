@@ -155,6 +155,13 @@ object AuthRepository {
     }
 
     /**
+     * Indica si el usuario con sesión iniciada es administrador (rol == "ADMIN").
+     * Es solo comodidad visual: la seguridad real la dan las reglas de Firestore.
+     * Mientras no se implemente devuelve false y nadie ve el panel de administración.
+     */
+    suspend fun esAdmin(): Boolean = perfilActual()?.rol == "ADMIN"
+
+    /**
      * Obtiene los datos del perfil desde Firestore.
      * Si no están disponibles, utiliza la información de la cuenta de Firebase
      * para que la aplicación pueda seguir funcionando.

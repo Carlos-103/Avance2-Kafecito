@@ -17,7 +17,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.kafecito.app.data.model.Producto
 import com.kafecito.app.data.repository.FavoritosRepository
-import com.kafecito.app.data.repository.KafecitoRepository
+import com.kafecito.app.data.repository.ProductoRepository
 import com.kafecito.app.ui.components.KafeHeader
 import com.kafecito.app.ui.components.ProductoImagen
 import com.kafecito.app.ui.theme.*
@@ -40,7 +40,7 @@ LaunchedEffect(Unit) {
         try {
             val ids = FavoritosRepository.listar()
             favoritos.clear()
-            favoritos.addAll(ids.mapNotNull { KafecitoRepository.obtenerProducto(it) })
+            favoritos.addAll(ids.mapNotNull { ProductoRepository.obtenerProducto(it) })
         } catch (e: Exception) {
             error = "No se pudieron cargar tus favoritos"
         }

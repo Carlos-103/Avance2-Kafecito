@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.LocationOn
@@ -36,6 +37,9 @@ fun ProfileScreen(
     onAbrirMetodosPago: () -> Unit,
     onAbrirFavoritos: () -> Unit,
     onCerrarSesion: () -> Unit,
+    // TODO(ROLES): esAdmin lo calcula NavGraph con AuthRepository.esAdmin().
+    esAdmin: Boolean = false,
+    onAbrirAdmin: () -> Unit = {},
     vm: PerfilViewModel = viewModel()
 ) {
     // Actualiza las estadísticas cada vez que se abre la pantalla de perfil.
@@ -93,6 +97,8 @@ fun ProfileScreen(
             FilaMenu(Icons.Filled.Favorite, "Favoritos", onAbrirFavoritos)
             FilaMenu(Icons.Filled.LocationOn, "Mis direcciones", onAbrirDirecciones)
             FilaMenu(Icons.Filled.CreditCard, "Métodos de pago", onAbrirMetodosPago)
+            // Solo el administrador ve esta opcion.
+            if (esAdmin) FilaMenu(Icons.Filled.AdminPanelSettings, "Panel de administración", onAbrirAdmin)
 
             Spacer(modifier = Modifier.weight(1f))
 

@@ -21,7 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.kafecito.app.data.model.Producto
 import com.kafecito.app.data.repository.AuthRepository
-import com.kafecito.app.data.repository.KafecitoRepository
+import com.kafecito.app.data.repository.ProductoRepository
 import com.kafecito.app.ui.components.KafeHeader
 import com.kafecito.app.ui.theme.*
 import com.kafecito.app.ui.components.ProductoImagen
@@ -40,11 +40,14 @@ fun HomeScreen(
     onAbrirDetalle: (Int) -> Unit,
     onAgregar: (Producto) -> Unit
 ) {
+    // TODO(CATALOGO-FS): el catalogo debe venir de Firestore. ProductoRepository ya expone
+    // las mismas funciones que antes; lo que falta es cargarlo al abrir la pantalla:
+    //   LaunchedEffect(Unit) { ProductoRepository.cargar() }  y refrescar la lista al terminar.
     // Cuando el estado cambia, Compose actualiza la interfaz que depende de él.
-    var categoriaSeleccionada by remember { mutableStateOf(KafecitoRepository.categorias.first()) }
+    var categoriaSeleccionada by remember { mutableStateOf(ProductoRepository.categorias.first()) }
     var busqueda by remember { mutableStateOf("") }
     // Filtra los productos según la categoría seleccionada y el texto de búsqueda.
-    val productos = KafecitoRepository.obtenerProductos(categoriaSeleccionada)
+    val productos = ProductoRepository.obtenerProductos(categoriaSeleccionada)
         .filter { it.nombre.contains(busqueda, ignoreCase = true) }
 
     Column(
@@ -89,7 +92,7 @@ fun HomeScreen(
                 .padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            KafecitoRepository.categorias.forEach { categoria ->
+            ProductoRepository.categorias.forEach { categoria ->
                 CategoriaChip(
                     texto = categoria,
                     seleccionada = categoria == categoriaSeleccionada,

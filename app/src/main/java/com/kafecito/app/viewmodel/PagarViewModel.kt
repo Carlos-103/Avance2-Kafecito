@@ -60,6 +60,8 @@ class PagarViewModel : ViewModel() {
         error = null
         viewModelScope.launch {
             try {
+                // TODO(STOCK): cambiar crear(...) por PedidoRepository.crearConStock(pedido)
+                // y mostrar el mensaje de error cuando no haya stock suficiente.
                 withTimeout(TIEMPO_MAX_MS) { PedidoRepository.crear(pedido) }
                 onExito()
             } catch (e: TimeoutCancellationException) {

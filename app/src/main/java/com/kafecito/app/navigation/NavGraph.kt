@@ -1,10 +1,18 @@
 package com.kafecito.app.navigation
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -15,10 +23,14 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.kafecito.app.data.repository.AuthRepository
-import com.kafecito.app.data.repository.KafecitoRepository
+import com.kafecito.app.data.repository.ProductoRepository
 import com.kafecito.app.ui.components.KafeBottomBar
 import com.kafecito.app.ui.screens.*
+import com.kafecito.app.ui.theme.KafeBlack
+import com.kafecito.app.ui.theme.KafeWhite
 import com.kafecito.app.viewmodel.CarritoViewModel
+import androidx.compose.ui.Alignment
+import kotlinx.coroutines.launch
 
 object Rutas {
     const val WELCOME = "welcome"
@@ -34,6 +46,14 @@ object Rutas {
     const val PAGAR = "pagar"
     const val PEDIDOS = "pedidos"
     const val DETALLE = "detalle/{productoId}"
+
+    // Panel del administrador.
+    const val INICIO = "inicio"
+
+    const val ADMIN = "admin"
+    const val ADMIN_PRODUCTOS = "admin_productos"
+    const val ADMIN_PEDIDOS = "admin_pedidos"
+    const val REPORTES = "reportes"
 
     fun detalle(productoId: Int) = "detalle/$productoId"
 }
@@ -57,7 +77,7 @@ fun KafecitoNavGraph(navController: NavHostController = rememberNavController())
 
     // Si ya existe una sesión de Firebase, el usuario entra directamente al Home.
     val destinoInicial = remember {
-        if (AuthRepository.uidActual() != null) Rutas.HOME else Rutas.WELCOME
+        if (AuthRepository.uidActual() != null) Rutas.INICIO else Rutas.WELCOME
     }
 
     Scaffold(
@@ -77,17 +97,31 @@ fun KafecitoNavGraph(navController: NavHostController = rememberNavController())
             startDestination = destinoInicial,
             modifier = Modifier.padding(padding)
         ) {
+
             composable(Rutas.WELCOME) {
                 WelcomeScreen(
                     onIniciarSesion = { navController.navigate(Rutas.LOGIN) },
                     onCrearCuenta = { navController.navigate(Rutas.REGISTER) }
                 )
             }
+            composable(Rutas.INICIO) {
+                LaunchedEffect(Unit) {
+                    val destino = if (AuthRepository.esAdmin()) Rutas.ADMIN else Rutas.HOME
+                    navController.navigate(destino) { popUpTo(Rutas.INICIO) { inclusive = true } }
+                }
+                Box(modifier = Modifier.fillMaxSize().background(KafeBlack), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = KafeWhite)
+                }
+            }
 
             composable(Rutas.LOGIN) {
+                val scope = rememberCoroutineScope()
                 LoginScreen(
                     onLoginExitoso = {
-                        navController.navigate(Rutas.HOME) { popUpTo(Rutas.WELCOME) { inclusive = true } }
+                        scope.launch {
+                            val destino = if (AuthRepository.esAdmin()) Rutas.ADMIN else Rutas.HOME
+                            navController.navigate(destino) { popUpTo(Rutas.WELCOME) { inclusive = true } }
+                        }
                     },
                     onAtras = { navController.popBackStack() }
                 )
@@ -116,7 +150,7 @@ fun KafecitoNavGraph(navController: NavHostController = rememberNavController())
             ) { entry ->
                 val id = entry.arguments?.getInt("productoId") ?: -1
                 ProductDetailScreen(
-                    producto = KafecitoRepository.obtenerProducto(id),
+                    producto = ProductoRepository.obtenerProducto(id),
                     onAtras = { navController.popBackStack() },
                     onAgregar = { producto, cantidad -> carritoVM.agregar(producto, cantidad) }
                 )
@@ -159,7 +193,7 @@ fun KafecitoNavGraph(navController: NavHostController = rememberNavController())
                     // Se respeta el stock disponible y después se abre la pantalla del carrito.
                     onRepetir = { pedido ->
                         pedido.items.forEach { item ->
-                            KafecitoRepository.obtenerProducto(item.productoId)?.let { carritoVM.agregar(it, item.cantidad) }
+                            ProductoRepository.obtenerProducto(item.productoId)?.let { carritoVM.agregar(it, item.cantidad) }
                         }
                         navController.navigate(Rutas.CARRITO)
                     }
@@ -168,8 +202,31 @@ fun KafecitoNavGraph(navController: NavHostController = rememberNavController())
 
             composable(Rutas.CONTACTO) { ContactScreen() }
 
+            // ---- Panel del administrador ----
+            // TODO(ROLES): ademas de ocultar la opcion, las reglas de Firestore son las que protegen.
+            composable(Rutas.ADMIN) {
+                AdminPanelScreen(
+                    onAbrirProductos = { navController.navigate(Rutas.ADMIN_PRODUCTOS) },
+                    onAbrirPedidos = { navController.navigate(Rutas.ADMIN_PEDIDOS) },
+                    onAbrirReportes = { navController.navigate(Rutas.REPORTES) },
+                    onCerrarSesion = {
+                        AuthRepository.cerrarSesion()
+                        carritoVM.vaciar()
+                        navController.navigate(Rutas.WELCOME) { popUpTo(Rutas.ADMIN) { inclusive = true } }
+                    }
+                )
+            }
+            composable(Rutas.ADMIN_PRODUCTOS) { AdminProductosScreen(onAtras = { navController.popBackStack() }) }
+            composable(Rutas.ADMIN_PEDIDOS) { AdminPedidosScreen(onAtras = { navController.popBackStack() }) }
+            composable(Rutas.REPORTES) { ReportesScreen(onAtras = { navController.popBackStack() }) }
+
             composable(Rutas.PERFIL) {
+                // TODO(ROLES): esAdmin() ya esta conectado; falta implementarla en AuthRepository.
+                var esAdmin by remember { mutableStateOf(false) }
+                LaunchedEffect(Unit) { esAdmin = AuthRepository.esAdmin() }
                 ProfileScreen(
+                    esAdmin = esAdmin,
+                    onAbrirAdmin = { navController.navigate(Rutas.ADMIN) },
                     onAbrirPedidos = { navController.navigate(Rutas.PEDIDOS) },
                     onAbrirDirecciones = { navController.navigate(Rutas.DIRECCIONES) },
                     onAbrirMetodosPago = { navController.navigate(Rutas.METODOS_PAGO) },

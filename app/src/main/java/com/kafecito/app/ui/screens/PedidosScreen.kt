@@ -55,6 +55,8 @@ fun PedidosScreen(
                             .background(KafeCard)
                             .padding(12.dp)
                     ) {
+                        // TODO(STOCK): mostrar aqui el estado del pedido (pedido.estado):
+                        // PENDIENTE, PREPARADO o ENTREGADO, por ejemplo con un Text pequeno.
                         Text(pedido.fecha.comoFecha(), color = KafeGray, style = MaterialTheme.typography.bodySmall)
                         Spacer(modifier = Modifier.height(4.dp))
                         pedido.items.forEach {
