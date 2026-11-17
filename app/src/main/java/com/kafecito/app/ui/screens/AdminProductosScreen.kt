@@ -1,63 +1,315 @@
 package com.kafecito.app.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.kafecito.app.data.model.Producto
 import com.kafecito.app.data.repository.ProductoRepository
+import com.kafecito.app.ui.components.KafeDarkField
+import com.kafecito.app.ui.components.KafeFilaTarjeta
 import com.kafecito.app.ui.components.KafeTopBar
 import com.kafecito.app.ui.theme.*
+import com.kafecito.app.util.Validaciones
 import com.kafecito.app.util.comoDinero
+import com.kafecito.app.viewmodel.AdminProductosViewModel
 
 /**
- * Gestión de productos del administrador. Versión base: solo lista los productos
- * con su precio y stock.
+ * Gestión de productos del administrador: lista con precio y stock, y un formulario
+ * para crear o editar un producto. También permite borrarlo (con confirmación).
  *
- * TODO(ADMIN-PRODUCTOS) - Ricardo
- * Modelo a copiar y adaptar: DireccionesScreen.kt (lista + formulario con validación +
- * editar + borrar + estados de carga y error + timeouts).
- *   1. Tocar un producto para editarlo y un botón "Nuevo producto".
- *   2. Formulario: nombre, descripción, precio, stock y categoría (categorías en ProductoRepository.categorias).
- *      Validar: nombre no vacío, precio > 0 y stock >= 0 (ver util/Validaciones.kt).
- *   3. Usar AdminProductosViewModel (ya hecho): vm.productos, vm.guardar(producto) { cerrar },
- *      vm.borrar(id), vm.siguienteId(), vm.guardando y vm.error. No llamar a Firestore desde la pantalla.
- * Depende de TODO(CATALOGO-FS) para ver los cambios reflejados en Home.
+ * La pantalla solo muestra el estado de AdminProductosViewModel y llama a sus funciones;
+ * no accede a Firestore directamente. Las reglas de Firestore son las que garantizan
+ * que solo un administrador pueda guardar o borrar.
  */
 @Composable
 fun AdminProductosScreen(onAtras: () -> Unit) {
-    val productos = ProductoRepository.obtenerProductos()
+    val vm: AdminProductosViewModel = viewModel()
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    Column(modifier = Modifier.fillMaxSize().background(KafeBlack).padding(20.dp)) {
-        KafeTopBar(titulo = "PRODUCTOS", onAtras = onAtras)
-        Spacer(modifier = Modifier.height(12.dp))
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            items(productos, key = { it.id }) { p ->
-                Row(
+    // Estado del formulario. rememberSaveable evita perder lo escrito al rotar la pantalla.
+    var formAbierto by rememberSaveable { mutableStateOf(false) }
+    // ID del producto que se edita. Si es null, el formulario crea uno nuevo.
+    var editandoId by rememberSaveable { mutableStateOf<Int?>(null) }
+    var nombre by rememberSaveable { mutableStateOf("") }
+    var descripcion by rememberSaveable { mutableStateOf("") }
+    var precio by rememberSaveable { mutableStateOf("") }
+    var stock by rememberSaveable { mutableStateOf("") }
+    var categoria by rememberSaveable { mutableStateOf(ProductoRepository.categorias.first()) }
+    var errores by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
+
+    // Producto pendiente de confirmar su borrado.
+    var porBorrar by remember { mutableStateOf<Producto?>(null) }
+
+    fun cerrarFormulario() {
+        formAbierto = false
+        editandoId = null
+        nombre = ""; descripcion = ""; precio = ""; stock = ""
+        categoria = ProductoRepository.categorias.first()
+        errores = emptyMap()
+    }
+
+    fun abrirNuevo() {
+        cerrarFormulario()
+        formAbierto = true
+    }
+
+    fun abrirEdicion(p: Producto) {
+        editandoId = p.id
+        nombre = p.nombre
+        descripcion = p.descripcion
+        precio = p.precio.toString()
+        stock = p.stock.toString()
+        categoria = p.categoria
+        errores = emptyMap()
+        formAbierto = true
+    }
+
+    fun guardar() {
+        if (vm.guardando) return
+        val nuevosErrores = Validaciones.validarProducto(nombre, precio, stock)
+        errores = nuevosErrores
+        if (nuevosErrores.isNotEmpty()) return
+
+        // Al editar se conserva la imagen que ya tenía el producto.
+        val existente = vm.productos.firstOrNull { it.id == editandoId }
+        val producto = Producto(
+            id = existente?.id ?: vm.siguienteId(),
+            nombre = nombre.trim(),
+            descripcion = descripcion.trim(),
+            precio = precio.trim().replace(',', '.').toDouble(),
+            stock = stock.trim().toInt(),
+            categoria = categoria,
+            imagen = existente?.imagen
+        )
+        // El formulario solo se cierra si el guardado fue exitoso.
+        vm.guardar(producto) { cerrarFormulario() }
+    }
+
+    // Muestra los errores del ViewModel como mensaje temporal sin ocultar la pantalla.
+    LaunchedEffect(vm.error) {
+        vm.error?.let {
+            snackbarHostState.showSnackbar(it)
+            vm.limpiarError()
+        }
+    }
+
+    // El botón "atrás" del sistema cierra el formulario en lugar de salir de la pantalla.
+    BackHandler(enabled = formAbierto && !vm.guardando) { cerrarFormulario() }
+
+    Scaffold(
+        containerColor = KafeBlack,
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(20.dp)
+        ) {
+            KafeTopBar(
+                titulo = when {
+                    !formAbierto -> "PRODUCTOS"
+                    editandoId == null -> "NUEVO PRODUCTO"
+                    else -> "EDITAR PRODUCTO"
+                },
+                onAtras = { if (formAbierto) cerrarFormulario() else onAtras() }
+            )
+
+            if (!formAbierto) {
+                // ---- Lista de productos ----
+                if (vm.productos.isEmpty()) {
+                    Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        Text("Aún no hay productos", color = KafeGray)
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        items(vm.productos, key = { it.id }) { p ->
+                            val detalle = if (p.stock <= 0) "Agotado" else "Stock: ${p.stock}"
+                            KafeFilaTarjeta(
+                                titulo = p.nombre,
+                                subtitulo = "${p.categoria} · ${p.precio.comoDinero()} · $detalle"
+                            ) {
+                                Row {
+                                    IconButton(onClick = { abrirEdicion(p) }, enabled = !vm.guardando) {
+                                        Icon(
+                                            Icons.Filled.Edit,
+                                            contentDescription = "Editar ${p.nombre}",
+                                            tint = KafeWhite
+                                        )
+                                    }
+                                    IconButton(onClick = { porBorrar = p }, enabled = !vm.guardando) {
+                                        Icon(
+                                            Icons.Filled.Delete,
+                                            contentDescription = "Borrar ${p.nombre}",
+                                            tint = KafeWhite
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+                Button(
+                    onClick = { abrirNuevo() },
+                    enabled = !vm.guardando,
+                    colors = ButtonDefaults.buttonColors(containerColor = KafeWhite, contentColor = KafeBlack),
+                    modifier = Modifier.fillMaxWidth().height(48.dp)
+                ) { Text("NUEVO PRODUCTO") }
+            } else {
+                // ---- Formulario de creación / edición ----
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(KafeCard)
-                        .padding(12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                        .weight(1f)
+                        .verticalScroll(rememberScrollState())
                 ) {
-                    Column {
-                        Text(p.nombre, color = KafeWhite, style = MaterialTheme.typography.bodyLarge)
-                        Text(p.categoria, color = KafeGray, style = MaterialTheme.typography.bodySmall)
+                    KafeDarkField(
+                        label = "Nombre",
+                        value = nombre,
+                        onChange = { nombre = it.take(60); errores = errores - "nombre" }
+                    )
+                    errores["nombre"]?.let { ErrorCampo(it) }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    KafeDarkField(
+                        label = "Descripción",
+                        value = descripcion,
+                        onChange = { descripcion = it.take(120) }
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    KafeDarkField(
+                        label = "Precio (USD)",
+                        value = precio,
+                        onChange = {
+                            precio = it.filter { c -> c.isDigit() || c == '.' || c == ',' }.take(8)
+                            errores = errores - "precio"
+                        },
+                        keyboardType = KeyboardType.Decimal
+                    )
+                    errores["precio"]?.let { ErrorCampo(it) }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    KafeDarkField(
+                        label = "Stock (unidades)",
+                        value = stock,
+                        onChange = {
+                            stock = it.filter { c -> c.isDigit() }.take(6)
+                            errores = errores - "stock"
+                        },
+                        keyboardType = KeyboardType.Number
+                    )
+                    errores["stock"]?.let { ErrorCampo(it) }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text("Categoría", color = KafeGray, style = MaterialTheme.typography.bodySmall)
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        ProductoRepository.categorias.forEach { c ->
+                            ChipCategoria(
+                                texto = c,
+                                seleccionada = c == categoria,
+                                onClick = { categoria = c }
+                            )
+                        }
                     }
-                    Column(horizontalAlignment = Alignment.End) {
-                        Text(p.precio.comoDinero(), color = KafeWhite)
-                        Text("Stock: ${p.stock}", color = KafeGray, style = MaterialTheme.typography.bodySmall)
+
+                    Spacer(modifier = Modifier.height(20.dp))
+                    Button(
+                        onClick = { guardar() },
+                        enabled = !vm.guardando,
+                        colors = ButtonDefaults.buttonColors(containerColor = KafeWhite, contentColor = KafeBlack),
+                        modifier = Modifier.fillMaxWidth().height(48.dp)
+                    ) {
+                        Text(
+                            when {
+                                vm.guardando -> "GUARDANDO..."
+                                editandoId == null -> "CREAR PRODUCTO"
+                                else -> "GUARDAR CAMBIOS"
+                            }
+                        )
                     }
+                    TextButton(
+                        onClick = { cerrarFormulario() },
+                        enabled = !vm.guardando,
+                        modifier = Modifier.fillMaxWidth()
+                    ) { Text("Cancelar", color = KafeGray) }
                 }
             }
         }
     }
+
+    // Confirmación antes de borrar un producto.
+    porBorrar?.let { p ->
+        AlertDialog(
+            onDismissRequest = { porBorrar = null },
+            containerColor = KafeCard,
+            titleContentColor = KafeWhite,
+            textContentColor = KafeGray,
+            title = { Text("Borrar producto") },
+            text = { Text("¿Quieres borrar \"${p.nombre}\"? Esta acción no se puede deshacer.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    vm.borrar(p.id)
+                    porBorrar = null
+                }) { Text("Borrar", color = KafeWhite) }
+            },
+            dismissButton = {
+                TextButton(onClick = { porBorrar = null }) { Text("Cancelar", color = KafeGray) }
+            }
+        )
+    }
+}
+
+/** Botón de selección de categoría dentro del formulario. */
+@Composable
+private fun ChipCategoria(texto: String, seleccionada: Boolean, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(if (seleccionada) KafeGray else KafeChip)
+            .clickable { onClick() }
+            .padding(horizontal = 14.dp, vertical = 8.dp)
+    ) {
+        Text(
+            text = texto,
+            color = if (seleccionada) KafeWhite else KafeBlack,
+            style = MaterialTheme.typography.bodyMedium
+        )
+    }
+}
+
+@Composable
+private fun ErrorCampo(mensaje: String) {
+    Text(
+        text = mensaje,
+        color = MaterialTheme.colorScheme.error,
+        style = MaterialTheme.typography.bodySmall
+    )
 }
