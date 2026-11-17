@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kafecito.app.data.model.Pedido
@@ -55,8 +56,13 @@ fun PedidosScreen(
                             .background(KafeCard)
                             .padding(12.dp)
                     ) {
-                        // TODO(STOCK): mostrar aqui el estado del pedido (pedido.estado):
-                        // PENDIENTE, PREPARADO o ENTREGADO, por ejemplo con un Text pequeno.
+                        // Estado del pedido: PENDIENTE, PREPARADO o ENTREGADO.
+                        Text(
+                            text = "Estado: ${pedido.estado}",
+                            color = KafeWhite,
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
                         Text(pedido.fecha.comoFecha(), color = KafeGray, style = MaterialTheme.typography.bodySmall)
                         Spacer(modifier = Modifier.height(4.dp))
                         pedido.items.forEach {
