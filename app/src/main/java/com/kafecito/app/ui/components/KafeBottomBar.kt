@@ -19,10 +19,10 @@ import com.kafecito.app.ui.theme.KafeBlack
 import com.kafecito.app.ui.theme.KafeGray
 import com.kafecito.app.ui.theme.KafeWhite
 
-// Representa una opción de navegación con su ruta e ícono.
+// Representa una opción de navegación mediante su ruta e ícono.
 private data class TabItem(val ruta: String, val icono: ImageVector)
 
-// Opciones disponibles en la barra de navegación inferior: menú, contacto y perfil.
+// Opciones disponibles en la barra de navegación inferior
 private val tabs = listOf(
     TabItem(Rutas.HOME, Icons.Filled.Receipt),
     TabItem(Rutas.CONTACTO, Icons.Filled.Headset),
@@ -30,8 +30,8 @@ private val tabs = listOf(
     TabItem(Rutas.PERFIL, Icons.Filled.Person)
 )
 /**
- * Barra inferior que permite navegar entre Home,
- * Contacto y Perfil, resaltando la ruta seleccionada.
+ * Barra de navegación inferior que permite cambiar entre las pantallas
+ * principales y resalta la opción correspondiente a la ruta actual.
  */
 @Composable
 fun KafeBottomBar(rutaActual: String?, onTabSeleccionado: (String) -> Unit) {
@@ -41,7 +41,7 @@ fun KafeBottomBar(rutaActual: String?, onTabSeleccionado: (String) -> Unit) {
     ) {
         tabs.forEach { tab ->
             NavigationBarItem(
-                // Indica si esta opción corresponde a la pantalla actual.
+
                 selected = rutaActual == tab.ruta,
                 onClick = { onTabSeleccionado(tab.ruta) },
                 icon = { Icon(tab.icono, contentDescription = tab.ruta) },

@@ -11,32 +11,39 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.kafecito.app.data.model.MetodoPago
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kafecito.app.ui.components.KafeDarkField
 import com.kafecito.app.ui.components.KafeFilaTarjeta
 import com.kafecito.app.ui.components.KafeTopBar
 import com.kafecito.app.ui.theme.*
+import com.kafecito.app.viewmodel.MetodosPagoViewModel
 
-/** Pantalla "Métodos de pago". Hoy usa datos de ejemplo en memoria. */
+/**
+ * Muestra los métodos de pago guardados y permite agregar o eliminar tarjetas.
+ * Los datos se almacenan en Firestore por usuario.
+ */
 @Composable
 fun MetodosPagoScreen(onAtras: () -> Unit) {
-    // TODO(PAGOS): cargar con MetodoPagoRepository.listar() en un ViewModel.
-    val metodos = remember {
-        mutableStateListOf(MetodoPago("1", "Visa", "4242"), MetodoPago("2", "Mastercard", "1111"))
-    }
+    val vm: MetodosPagoViewModel = viewModel()
     var marca by remember { mutableStateOf("") }
     var ultimos4 by remember { mutableStateOf("") }
-    var error by remember { mutableStateOf<String?>(null) }
 
     Column(modifier = Modifier.fillMaxSize().background(KafeBlack).padding(20.dp)) {
         KafeTopBar(titulo = "MÉTODOS DE PAGO", onAtras = onAtras)
 
-        LazyColumn(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            items(metodos, key = { it.id }) { m ->
-                KafeFilaTarjeta(titulo = m.marca, subtitulo = m.etiqueta) {
-                    // TODO(PAGOS): ademas de quitarlo de la lista, llamar a MetodoPagoRepository.borrar(m.id)
-                    IconButton(onClick = { metodos.remove(m) }) {
-                        Icon(Icons.Filled.Delete, contentDescription = "Borrar", tint = KafeWhite)
+        if (vm.metodos.isEmpty()) {
+            Text(
+                text = "Aún no tienes métodos de pago guardados",
+                color = KafeGray,
+                modifier = Modifier.weight(1f)
+            )
+        } else {
+            LazyColumn(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                items(vm.metodos, key = { it.id }) { m ->
+                    KafeFilaTarjeta(titulo = m.marca, subtitulo = m.etiqueta) {
+                        IconButton(onClick = { vm.borrar(m.id) }) {
+                            Icon(Icons.Filled.Delete, contentDescription = "Borrar", tint = KafeWhite)
+                        }
                     }
                 }
             }
@@ -47,19 +54,26 @@ fun MetodosPagoScreen(onAtras: () -> Unit) {
         Spacer(modifier = Modifier.height(8.dp))
         KafeDarkField(label = "Marca (Visa, Mastercard...)", value = marca, onChange = { marca = it })
         Spacer(modifier = Modifier.height(8.dp))
-        KafeDarkField(label = "Últimos 4 dígitos", value = ultimos4, onChange = { ultimos4 = it.take(4) }, keyboardType = KeyboardType.Number)
-        error?.let { Text(text = it, color = MaterialTheme.colorScheme.error) }
+        // Limita la entrada a cuatro caracteres numéricos.
+        KafeDarkField(
+            label = "Últimos 4 dígitos",
+            value = ultimos4,
+            onChange = { ultimos4 = it.filter { c -> c.isDigit() }.take(4) },
+            keyboardType = KeyboardType.Number
+        )
+        vm.error?.let { Text(text = it, color = MaterialTheme.colorScheme.error) }
         Spacer(modifier = Modifier.height(12.dp))
         Button(
             onClick = {
-                // TODO(PAGOS): validar (marca no vacia y ultimos4 con exactamente 4 digitos) y poner el mensaje en `error`.
-                // Luego guardar con MetodoPagoRepository.agregar(...).
-                error = null
-                metodos.add(MetodoPago(System.currentTimeMillis().toString(), marca, ultimos4))
-                marca = ""; ultimos4 = ""
+                // Si la validación es correcta, se agrega el metodo y se limpian los campos.
+                if (vm.agregar(marca, ultimos4)) {
+                    marca = ""
+                    ultimos4 = ""
+                }
             },
+            enabled = !vm.guardando,
             colors = ButtonDefaults.buttonColors(containerColor = KafeWhite, contentColor = KafeBlack),
             modifier = Modifier.fillMaxWidth().height(48.dp)
-        ) { Text("AGREGAR MÉTODO") }
+        ) { Text(if (vm.guardando) "GUARDANDO..." else "AGREGAR MÉTODO") }
     }
 }

@@ -3,10 +3,14 @@ package com.kafecito.app.data.repository
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 
 /**
- * Rutas de Firestore. Todo cuelga de usuarios/{uid}/...
- * Las instancias se piden al usarlas, asi la app no falla al abrir si Firebase aun no esta configurado.
+ * Centraliza las rutas de acceso a las colecciones y documentos de Firestore.
+ * Los datos de cada usuario se almacenan dentro de usuarios/{uid}/...
+ *
+ * La instancia de Firestore se obtiene cuando se necesita,
+ * evitando inicializarla al cargar este objeto.
  */
 object FirestorePaths {
     private val db get() = FirebaseFirestore.getInstance()
@@ -17,7 +21,14 @@ object FirestorePaths {
     fun metodosPago(uid: String): CollectionReference = usuario(uid).collection("metodosPago")
     fun pedidos(uid: String): CollectionReference = usuario(uid).collection("pedidos")
 
-    /** uid del usuario con sesion iniciada. Lanza error si nadie ha iniciado sesion. */
+    /** Catalogo de productos (colección raíz). El id del documento es el id del producto. */
+    fun productos(): CollectionReference = db.collection("productos")
+    fun producto(id: Int): DocumentReference = productos().document(id.toString())
+
+    /** Todos los pedidos de todos los usuarios (solo para el administrador). */
+    fun todosLosPedidos(): Query = db.collectionGroup("pedidos")
+
+    /** Obtiene el ID del usuario con sesión iniciada. Lanza un error si no hay una sesión activa. */
     fun uidActual(): String =
         AuthRepository.uidActual() ?: error("No hay una sesion iniciada")
 }

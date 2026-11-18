@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.LocationOn
@@ -13,17 +14,21 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kafecito.app.data.repository.AuthRepository
 import com.kafecito.app.ui.components.KafeHeader
 import com.kafecito.app.ui.theme.*
+import com.kafecito.app.viewmodel.PerfilViewModel
 
 /**
- * Pantalla de perfil: datos del usuario, estadísticas, menú y cerrar sesión.
+ * Muestra los datos del usuario, sus estadísticas y las opciones
+ * para gestionar su cuenta y cerrar sesión.
  */
 @Composable
 fun ProfileScreen(
@@ -31,8 +36,15 @@ fun ProfileScreen(
     onAbrirDirecciones: () -> Unit,
     onAbrirMetodosPago: () -> Unit,
     onAbrirFavoritos: () -> Unit,
-    onCerrarSesion: () -> Unit
+    onCerrarSesion: () -> Unit,
+    // TODO(ROLES): esAdmin lo calcula NavGraph con AuthRepository.esAdmin().
+    esAdmin: Boolean = false,
+    onAbrirAdmin: () -> Unit = {},
+    vm: PerfilViewModel = viewModel()
 ) {
+    // Actualiza las estadísticas cada vez que se abre la pantalla de perfil.
+    LaunchedEffect(Unit) { vm.cargar() }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -72,13 +84,11 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // TODO(PERFIL): reemplazar los 3 numeros por datos reales:
-            // PedidoRepository.contar(), FavoritosRepository.contar() y
-            // puntos = suma de PedidoRepository.puntosDe(total) de cada pedido.
+            // Muestra la cantidad de pedidos, favoritos y puntos acumulados del usuario.
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                Estadistica(valor = 2, etiqueta = "Pedidos")
-                Estadistica(valor = 2, etiqueta = "Favoritos")
-                Estadistica(valor = 15, etiqueta = "Puntos")
+                Estadistica(valor = vm.pedidos, etiqueta = "Pedidos")
+                Estadistica(valor = vm.favoritos, etiqueta = "Favoritos")
+                Estadistica(valor = vm.puntos, etiqueta = "Puntos")
             }
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -87,6 +97,8 @@ fun ProfileScreen(
             FilaMenu(Icons.Filled.Favorite, "Favoritos", onAbrirFavoritos)
             FilaMenu(Icons.Filled.LocationOn, "Mis direcciones", onAbrirDirecciones)
             FilaMenu(Icons.Filled.CreditCard, "Métodos de pago", onAbrirMetodosPago)
+            // Solo el administrador ve esta opcion.
+            if (esAdmin) FilaMenu(Icons.Filled.AdminPanelSettings, "Panel de administración", onAbrirAdmin)
 
             Spacer(modifier = Modifier.weight(1f))
 

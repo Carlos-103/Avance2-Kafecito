@@ -1,26 +1,43 @@
 package com.kafecito.app.data.repository
 
 import com.kafecito.app.data.model.MetodoPago
+import kotlinx.coroutines.tasks.await
 
 /**
- * Metodos de pago (simulados): usuarios/{uid}/metodosPago/{id}. Solo marca y ultimos 4 digitos.
- * Mientras no se implemente cada funcion devuelve un valor seguro (lista vacia)
- * para que la app no se caiga si otra pantalla ya la llama.
+ * Gestiona los métodos de pago de cada usuario en Firestore.
+ * Solo almacena la marca y los últimos cuatro dígitos de la tarjeta.
  */
 object MetodoPagoRepository {
 
-    // TODO(PAGOS): patron "leer lista".
+    /** Obtiene los métodos de pago guardados del usuario con sesión iniciada. */
     suspend fun listar(): List<MetodoPago> {
-        return emptyList()
+        val uid = FirestorePaths.uidActual()
+        val snap = FirestorePaths.metodosPago(uid).get().await()
+        // Se copia el id del documento al objeto.
+        return snap.documents
+            .mapNotNull { doc -> doc.toObject(MetodoPago::class.java)?.copy(id = doc.id) }
+            .sortedBy { it.marca.lowercase() }
     }
 
-    // TODO(PAGOS): patron "agregar". Validar que ultimos4 tenga exactamente 4 digitos.
+    /**
+     * Guarda un metodo de pago después de validar la marca y los últimos cuatro dígitos.
+     * Solo almacena los datos necesarios, nunca el número completo de la tarjeta.
+     */
     suspend fun agregar(metodo: MetodoPago) {
-        // Pendiente.
+        val marca = metodo.marca.trim()
+        val ultimos4 = metodo.ultimos4.trim()
+        require(marca.isNotEmpty()) { "La marca no puede estar vacia" }
+        require(ultimos4.length == 4 && ultimos4.all { it.isDigit() }) {
+            "Los ultimos4 deben ser exactamente 4 digitos"
+        }
+        val uid = FirestorePaths.uidActual()
+        val ref = FirestorePaths.metodosPago(uid).document()   // Firestore genera automáticamente el ID del documento.
+        ref.set(mapOf("id" to ref.id, "marca" to marca, "ultimos4" to ultimos4)).await()
     }
 
-    // TODO(PAGOS): patron "borrar".
+    /** Elimina un metodo de pago utilizando el ID de su documento en Firestore. */
     suspend fun borrar(id: String) {
-        // Pendiente.
+        val uid = FirestorePaths.uidActual()
+        FirestorePaths.metodosPago(uid).document(id).delete().await()
     }
 }

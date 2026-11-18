@@ -1,8 +1,9 @@
 package com.kafecito.app.data.model
 
 /**
- * Documento usuarios/{uid}/metodosPago/{id}.
- * Por seguridad solo se guardan la marca y los ultimos 4 digitos, nunca el numero completo.
+ * Representa un metodo de pago almacenado en usuarios/{uid}/metodosPago/{id}.
+ * Por seguridad, solo guarda la marca de la tarjeta y sus últimos cuatro dígitos.
+ * Nunca almacena el número completo.
  */
 data class MetodoPago(
     val id: String = "",

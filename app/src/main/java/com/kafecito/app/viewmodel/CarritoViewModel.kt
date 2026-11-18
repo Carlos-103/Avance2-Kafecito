@@ -6,17 +6,17 @@ import com.kafecito.app.data.model.ItemCarrito
 import com.kafecito.app.data.model.Producto
 
 /**
- * Administra el estado del carrito compartido entre Home,
- * Detalle y Carrito. Se crea una sola vez en NavGraph.kt.
+ * Administra el carrito compartido entre las pantallas Home, Detalle y Carrito.
+ * Se instancia una sola vez desde NavGraph.kt.
  */
 class CarritoViewModel : ViewModel() {
-    // Lista observable que actualiza la interfaz cuando cambia el carrito.
+    // Lista observable que permite actualizar la interfaz cuando cambia el carrito.
     private val _items = mutableStateListOf<ItemCarrito>()
     val items: List<ItemCarrito> get() = _items
 
     /**
-     * Agrega un producto al carrito o aumenta su cantidad
-     * si ya existe uno con el mismo ID.
+     * Agrega un producto al carrito o aumenta su cantidad si ya existe.
+     * Respeta el stock disponible.
      */
     fun agregar(producto: Producto, cantidad: Int = 1) {
         val indice = _items.indexOfFirst { it.producto.id == producto.id }
@@ -49,18 +49,18 @@ class CarritoViewModel : ViewModel() {
         _items.removeAll { it.producto.id == productoId }
     }
 
-    /** Vacía el carrito (se usa al cerrar sesión). */
+    /** Elimina todos los productos del carrito, por ejemplo, al cerrar sesión. */
     fun vaciar() {
         _items.clear()
     }
 
-    /** Suma de todas las líneas, sin IVA. */
+    //Suma los importes de los productos sin incluir el IVA.
     val subtotal: Double get() = _items.sumOf { it.totalLinea }
 
-    /** IVA = 13 % del subtotal. */
+    // Calcula el IVA (13 %) sobre el subtotal.
     val iva: Double get() = subtotal * TASA_IVA
 
-    /** Total a pagar = subtotal + IVA. */
+    //Calcula el total a pagar sumando el subtotal y el IVA. 
     val total: Double get() = subtotal + iva
 
     private companion object {

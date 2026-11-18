@@ -33,7 +33,7 @@ fun WelcomeScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Contenedor circular para el icono o logo de Kafecito.
+
             Box(
                 modifier = Modifier
                     .size(110.dp)
@@ -55,20 +55,20 @@ fun WelcomeScreen(
                 style = MaterialTheme.typography.titleLarge
             )
         }
-        // Coloca los botones en la parte inferior de la pantalla.
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Navega a la pantalla de inicio de sesión.
+
             Button(
                 onClick = onIniciarSesion,
                 colors = ButtonDefaults.buttonColors(containerColor = KafeWhite, contentColor = KafeBlack),
                 modifier = Modifier.fillMaxWidth().height(48.dp)
             ) { Text("INICIAR SESIÓN") }
-// Navega al formulario de creación de cuenta.
+
             OutlinedButton(
                 onClick = onCrearCuenta,
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = KafeWhite),

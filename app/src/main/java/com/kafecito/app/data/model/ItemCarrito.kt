@@ -7,6 +7,6 @@ data class ItemCarrito(
     val producto: Producto,
     val cantidad: Int
 ) {
-    // Calcula el subtotal de la línea según el precio y la cantidad.
+
     val totalLinea: Double get() = producto.precio * cantidad
 }

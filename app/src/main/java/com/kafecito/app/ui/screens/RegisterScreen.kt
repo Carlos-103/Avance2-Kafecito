@@ -23,8 +23,10 @@ import com.kafecito.app.util.Validaciones
 import kotlinx.coroutines.launch
 
 /**
- * Pantalla para crear una cuenta.
- * Valida los datos y registra al usuario en Firebase Authentication (correo o Google).
+ * Pantalla para crear una cuenta mediante correo electrónico
+ * y contraseña o utilizando una cuenta de Google.
+ *
+ * Valida los datos ingresados y registra al usuario en Firebase.
  */
 @Composable
 fun RegisterScreen(
@@ -38,10 +40,10 @@ fun RegisterScreen(
     var confirmar by remember { mutableStateOf("") }
     var aceptaTerminos by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
-    // true mientras se espera la respuesta de Firebase.
+    // Indica si hay una operación de registro en curso.
     var cargando by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    // Para Google hace falta la Activity (muestra el selector de cuentas).
+    // Obtiene el contexto necesario para iniciar el selector de cuentas de Google.
     val context = LocalContext.current
 
     Column(
@@ -51,7 +53,7 @@ fun RegisterScreen(
             .verticalScroll(rememberScrollState())
             .padding(24.dp)
     ) {
-        // Permite regresar a la pantalla anterior.
+
         IconButton(onClick = onAtras) {
             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás", tint = KafeWhite)
         }
@@ -69,7 +71,7 @@ fun RegisterScreen(
         Spacer(modifier = Modifier.height(12.dp))
         KafeDarkField(label = "Confirmar contraseña", value = confirmar, onChange = { confirmar = it }, esPassword = true)
 
-// Guarda si el usuario acepta los términos y condiciones.
+
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(top = 12.dp)
@@ -81,7 +83,7 @@ fun RegisterScreen(
             )
             Text("Acepto términos y condiciones", color = KafeGray)
         }
-// Muestra el mensaje únicamente cuando hay un error.
+
         error?.let {
             Text(text = it, color = MaterialTheme.colorScheme.error)
         }
@@ -98,7 +100,7 @@ fun RegisterScreen(
                 } else {
                     error = null
                     cargando = true
-                    // Firebase es asíncrono: se llama dentro de una corrutina.
+                    // Ejecuta el registro en una corrutina porque la operación de Firebase es asíncrona.
                     scope.launch {
                         val resultado = AuthRepository.registrar(nombre.trim(), correo.trim(), password)
                         cargando = false
@@ -119,7 +121,7 @@ fun RegisterScreen(
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Registro e inicio de sesión con Google (si es la primera vez se crea la cuenta).
+        // Permite registrarse o iniciar sesión con Google; Firebase gestiona ambos casos.
         KafeGoogleButton(texto = "Registrarse con Google", enabled = !cargando) {
             error = null
             cargando = true
@@ -133,8 +135,8 @@ fun RegisterScreen(
 }
 
 /**
- * Comprueba los datos del registro y devuelve el primer error encontrado.
- * Devuelve null cuando todas las validaciones son correctas.
+ * Comprueba los datos del formulario y devuelve el primer error encontrado.
+ * Devuelve null si todas las validaciones son correctas.
  */
 private fun validarRegistro(
     nombre: String,
@@ -147,7 +149,7 @@ private fun validarRegistro(
     if (nombre.isBlank() || correo.isBlank() || password.isBlank() || confirmar.isBlank()) {
         return "Todos los campos son obligatorios"
     }
-    // Verifica el formato del correo electrónico.
+    // Verifica que el correo electrónico tenga un formato valido.
     if (!Validaciones.esCorreoValido(correo.trim())) return "El correo no tiene un formato válido"
 
     // Comprueba que la contraseña cumpla con la longitud mínima
@@ -156,7 +158,7 @@ private fun validarRegistro(
     }
     // Verifica que ambas contraseñas coincidan.
     if (password != confirmar) return "Las contraseñas no coinciden"
-    // Impide continuar si no se aceptaron los términos.
+    // Comprueba que el usuario haya aceptado los términos y condiciones.
     if (!aceptaTerminos) return "Debes aceptar los términos y condiciones"
     return null
 }

@@ -13,7 +13,10 @@ import com.kafecito.app.ui.theme.KafeBorderDark
 import com.kafecito.app.ui.theme.KafeGray
 import com.kafecito.app.ui.theme.KafeWhite
 
-/** Boton "Iniciar sesion con Google" para pantallas con fondo oscuro (Login y Registro). */
+/**
+ * Botón para iniciar sesión con Google, utilizado en las pantallas
+ * de Login y Registro con fondo oscuro.
+ */
 @Composable
 fun KafeGoogleButton(
     texto: String,

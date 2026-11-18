@@ -22,7 +22,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import kotlin.time.Duration.Companion.seconds
 
-/** Pantalla "Mis direcciones": lista, agrega, edita y borra direcciones en Firestore. */
+/**
+ * Muestra las direcciones guardadas del usuario y permite agregarlas,
+ * editarlas y eliminarlas mediante Firestore.
+ */
 @Composable
 fun DireccionesScreen(onAtras: () -> Unit) {
     val scope = rememberCoroutineScope()
@@ -32,7 +35,7 @@ fun DireccionesScreen(onAtras: () -> Unit) {
     var cargando by remember { mutableStateOf(true) }
     var guardando by remember { mutableStateOf(false) }
 
-    // Id de la dirección en edición. null = modo agregar.
+    // ID de la dirección que se está editando. Si es null, se agrega una nueva.
     var editandoId by remember { mutableStateOf<String?>(null) }
 
     var alias by remember { mutableStateOf("") }
@@ -56,7 +59,7 @@ fun DireccionesScreen(onAtras: () -> Unit) {
         errores = emptyMap()
     }
 
-    // Carga inicial
+    // Carga las direcciones guardadas del usuario al abrir la pantalla.
     LaunchedEffect(Unit) {
         var mensajeError: String? = null
         try {
@@ -111,7 +114,7 @@ fun DireccionesScreen(onAtras: () -> Unit) {
             try {
                 withTimeout(15.seconds) { DireccionRepository.borrar(d.id) }
                 direcciones.removeAll { it.id == d.id }
-                // Si se estaba editando la dirección borrada, salir del modo edición
+                // Si se elimina la dirección que se estaba editando, se limpia el formulario.
                 if (editandoId == d.id) limpiarFormulario()
             } catch (e: Exception) {
                 mensajeError = "No se pudo borrar la dirección"
@@ -251,9 +254,10 @@ private fun ErrorTexto(mensaje: String) {
 }
 
 /**
- * Devuelve un mapa campo -> mensaje de error. Vacío significa formulario válido.
- * [idEditando] se excluye de la comprobación de alias repetido, para que
- * el usuario pueda guardar la dirección con su mismo alias.
+ * Valida los campos del formulario y devuelve los errores encontrados.
+ *
+ * La dirección que se está editando se excluye de la comprobación
+ * de alias duplicados para permitir conservar su alias actual.
  */
 private fun validarDireccion(
     alias: String,

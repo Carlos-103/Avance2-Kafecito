@@ -15,8 +15,8 @@ import com.kafecito.app.ui.theme.KafeGray
 import com.kafecito.app.ui.theme.KafeWhite
 
 /**
- * Fila reutilizable: titulo y subtitulo a la izquierda y, opcionalmente,
- * una accion (por ejemplo un boton de borrar) a la derecha.
+ * Fila reutilizable que muestra un título y un subtítulo a la izquierda
+ * y permite agregar una acción opcional a la derecha, como un botón de eliminar.
  */
 @Composable
 fun KafeFilaTarjeta(

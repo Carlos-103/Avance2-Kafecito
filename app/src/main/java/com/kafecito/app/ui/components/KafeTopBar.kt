@@ -15,7 +15,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.kafecito.app.ui.theme.KafeWhite
 
-/** Encabezado con flecha de regreso y titulo, para pantallas con fondo oscuro. */
+/**
+ * Barra superior con botón de regreso y título,
+ * diseñada para pantallas con fondo oscuro.
+ */
 @Composable
 fun KafeTopBar(titulo: String, onAtras: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {

@@ -17,14 +17,17 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.kafecito.app.data.model.Producto
 import com.kafecito.app.data.repository.FavoritosRepository
-import com.kafecito.app.data.repository.KafecitoRepository
+import com.kafecito.app.data.repository.ProductoRepository
 import com.kafecito.app.ui.components.KafeHeader
 import com.kafecito.app.ui.components.ProductoImagen
 import com.kafecito.app.ui.theme.*
 import com.kafecito.app.util.comoDinero
 import kotlinx.coroutines.launch
 
-/** Pantalla de favoritos (pestaña de la barra inferior). */
+/**
+ * Muestra los productos favoritos del usuario y permite
+ * consultar sus detalles o eliminarlos de la lista.
+ */
 @Composable
 fun FavoritosScreen(onAbrirDetalle: (Int) -> Unit) {
     val favoritos = remember { mutableStateListOf<Producto>() }
@@ -32,12 +35,12 @@ fun FavoritosScreen(onAbrirDetalle: (Int) -> Unit) {
     var error by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
 
-    // Carga inicial: ids guardados -> productos reales
+    // Obtiene los IDs de favoritos y busca sus productos en el catálogo.
 LaunchedEffect(Unit) {
         try {
             val ids = FavoritosRepository.listar()
             favoritos.clear()
-            favoritos.addAll(ids.mapNotNull { KafecitoRepository.obtenerProducto(it) })
+            favoritos.addAll(ids.mapNotNull { ProductoRepository.obtenerProducto(it) })
         } catch (e: Exception) {
             error = "No se pudieron cargar tus favoritos"
         }

@@ -10,14 +10,17 @@ import com.kafecito.app.data.model.Direccion
 import kotlinx.coroutines.tasks.await
 
 /**
- * Direcciones del usuario: usuarios/{uid}/direcciones/{id}.
- * El id del documento lo genera Firestore.
- * Lanza excepciones si no hay sesion o falla la red, para que la UI pueda avisar.
+ * Gestiona las direcciones guardadas por cada usuario en Firestore.
+ * Cada dirección se almacena en su propio documento, cuyo ID genera Firestore.
+ *
+ * Las operaciones lanzan excepciones si no hay una sesión iniciada
+ * o si ocurre algún problema al comunicarse con Firestore.
  */
 object DireccionRepository {
 
     private val db = FirebaseFirestore.getInstance()
 
+    // Obtiene la colección de direcciones correspondiente al usuario que inició sesión.
     private fun direccionesRef(): CollectionReference {
         val uid = FirebaseAuth.getInstance().currentUser?.uid
             ?: throw IllegalStateException("No hay sesión iniciada")
@@ -34,7 +37,7 @@ object DireccionRepository {
     }
 
     suspend fun agregar(alias: String, calle: String, ciudad: String): Direccion {
-        val ref = direccionesRef().document() // id generado por Firestore
+        val ref = direccionesRef().document() // Firestore genera automáticamente el ID de la dirección.
         val datos = mapOf(
             "alias" to alias,
             "calle" to calle,
@@ -49,14 +52,14 @@ object DireccionRepository {
         direccionesRef().document(id).delete().await()
     }
 
-    // Convierte el documento en Direccion. Devuelve null si faltan campos.
+    // Obtiene los datos de una dirección. Si falta algún campo obligatorio, la descarta.
     private fun DocumentSnapshot.toDireccion(): Direccion? {
         val alias = getString("alias") ?: return null
         val calle = getString("calle") ?: return null
         val ciudad = getString("ciudad") ?: return null
         return Direccion(id = id, alias = alias, calle = calle, ciudad = ciudad)
     }
-
+    // Actualiza los datos de una dirección existente y registra la fecha del cambio.
     suspend fun actualizar(id: String, alias: String, calle: String, ciudad: String): Direccion {
         direccionesRef().document(id).update(
             mapOf(

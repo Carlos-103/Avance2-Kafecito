@@ -20,6 +20,10 @@ import com.kafecito.app.data.repository.FavoritosRepository
 import com.kafecito.app.ui.components.ProductoImagen
 import com.kafecito.app.ui.theme.*
 import kotlinx.coroutines.launch
+/**
+ * Muestra los detalles de un producto y permite marcarlo como favorito,
+ * seleccionar la cantidad deseada y agregarlo al carrito.
+ */
 @Composable
 fun ProductDetailScreen(
     producto: Producto?,
@@ -28,24 +32,23 @@ fun ProductDetailScreen(
 ) {
     val scope = rememberCoroutineScope()
 
-    // Estado de favorito. Se reinicia si cambia el producto.
+    // Estado de favorito. Se reinicia cuando cambia el producto.
     var esFavorito by remember(producto?.id) { mutableStateOf(false) }
     var favoritoCargado by remember(producto?.id) { mutableStateOf(false) }
 
-    // Consulta en Firestore si el producto ya es favorito al abrir la pantalla
+    // Consulta en Firestore si el producto ya esta guardado como favorito
  LaunchedEffect(producto?.id) {
         if (producto != null) {
             try {
                 esFavorito = FavoritosRepository.esFavorito(producto.id)
             } catch (e: Exception) {
-                // Si falla, se queda sin marcar; el usuario aún puede tocar el corazón.
+                // Si falla la consulta, el producto se queda sin marcar y el usuario puede intentarlo manualmente
             }
             favoritoCargado = true
         }
     }
 
-    // Alterna el favorito con actualización optimista: cambia la UI al instante
-    // y revierte si Firestore falla.
+    // Actualiza el estado visual inmediatamente y lo revierte si Firestore devuelve un error.
     fun alternarFavorito(p: Producto) {
         val nuevoEstado = !esFavorito
         esFavorito = nuevoEstado
@@ -92,7 +95,7 @@ fun ProductDetailScreen(
             return@Column
         }
 
-        // Cantidad seleccionada (mínimo 1, máximo el stock disponible)
+        // Cantidad seleccionada, limitada a un mínimo de 1 y al stock disponible.
         var cantidad by remember { mutableStateOf(1) }
 
         ProductoImagen(
@@ -118,13 +121,13 @@ fun ProductDetailScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Selector de cantidad: [ - ]  N  [ + ]
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Botón "-" : resta 1 pero nunca baja de 1
+
             FilledIconButton(
                 onClick = { if (cantidad > 1) cantidad-- },
                 enabled = cantidad > 1,
@@ -146,7 +149,7 @@ fun ProductDetailScreen(
                 modifier = Modifier.padding(horizontal = 28.dp)
             )
 
-            // Botón "+" : suma 1 pero nunca supera el stock
+
             FilledIconButton(
                 onClick = { if (cantidad < producto.stock) cantidad++ },
                 enabled = cantidad < producto.stock,
