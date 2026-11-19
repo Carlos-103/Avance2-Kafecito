@@ -1,14 +1,17 @@
 package com.kafecito.app.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kafecito.app.data.model.EstadoPedido
@@ -18,60 +21,142 @@ import com.kafecito.app.util.comoDinero
 import com.kafecito.app.util.comoFecha
 import com.kafecito.app.viewmodel.AdminPedidosViewModel
 
-/**
- * Pedidos del local: todos los pedidos de todos los clientes. Versión base que ya funciona:
- * lista los pedidos y permite cambiar el estado con tres botones.
- *
- * TODO(ADMIN-PEDIDOS) - José: pulir esta pantalla
- *   - Mostrar el estado con color o etiqueta distinta (ahora es solo texto).
- *   - Filtro por estado (chips: Todos / Pendiente / Preparado / Entregado).
- *   - Mostrar la dirección cuando el pedido es a domicilio.
- *   - Si vm.error aparece al cambiar un estado, mostrarlo sin ocultar la lista.
- */
+/** Pedidos de todos los clientes, con filtros y acciones de estado para el administrador. */
 @Composable
 fun AdminPedidosScreen(onAtras: () -> Unit) {
     val vm: AdminPedidosViewModel = viewModel()
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    Column(modifier = Modifier.fillMaxSize().background(KafeBlack).padding(20.dp)) {
-        KafeTopBar(titulo = "PEDIDOS DEL LOCAL", onAtras = onAtras)
-        Spacer(modifier = Modifier.height(12.dp))
+    LaunchedEffect(vm.error) {
+        vm.error?.let { snackbarHostState.showSnackbar(it) }
+    }
 
-        when {
-            vm.cargando -> CircularProgressIndicator(color = KafeWhite)
+    Scaffold(
+        containerColor = KafeBlack,
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(20.dp)
+        ) {
+            KafeTopBar(titulo = "PEDIDOS DEL LOCAL", onAtras = onAtras)
+            Spacer(modifier = Modifier.height(12.dp))
 
-            vm.error != null && vm.pedidos.isEmpty() -> Column {
-                Text(vm.error ?: "", color = KafeGray)
-                TextButton(onClick = { vm.cargar() }) { Text("Reintentar", color = KafeWhite) }
+            if (vm.pedidos.isNotEmpty()) {
+                Row(
+                    modifier = Modifier.horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    (listOf(null to "Todos") + EstadoPedido.todos.map { estado ->
+                        estado to estado.etiquetaEstado()
+                    }).forEach { (estado, etiqueta) ->
+                        FilterChip(
+                            selected = vm.filtroEstado == estado,
+                            onClick = { vm.filtrarPorEstado(estado) },
+                            label = { Text(etiqueta) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                containerColor = KafeCard,
+                                labelColor = KafeGray,
+                                selectedContainerColor = KafeWhite,
+                                selectedLabelColor = KafeBlack
+                            )
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(12.dp))
             }
 
-            vm.pedidos.isEmpty() -> Text("Todavía no hay pedidos", color = KafeGray)
+            when {
+                vm.cargando && vm.pedidos.isEmpty() ->
+                    CircularProgressIndicator(color = KafeWhite)
 
-            else -> LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                items(vm.pedidos, key = { it.id }) { pedido ->
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(KafeCard)
-                            .padding(12.dp)
-                    ) {
-                        Text(pedido.fecha.comoFecha(), color = KafeGray, style = MaterialTheme.typography.bodySmall)
-                        Text("Estado: ${pedido.estado}", color = KafeWhite, style = MaterialTheme.typography.titleSmall)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        pedido.items.forEach { Text("${it.cantidad} x ${it.nombre}", color = KafeWhite) }
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = (if (pedido.tipoEntrega == "DOMICILIO") "A domicilio" else "Recoger en tienda") + " · " + pedido.metodoPago,
-                            color = KafeGray,
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                        Text(pedido.total.comoDinero(), color = KafeWhite, style = MaterialTheme.typography.bodyLarge)
-                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            EstadoPedido.todos.forEach { estado ->
-                                OutlinedButton(
-                                    onClick = { vm.cambiarEstado(pedido, estado) },
-                                    enabled = pedido.estado != estado
-                                ) { Text(estado.lowercase().replaceFirstChar { it.uppercase() }, color = KafeWhite) }
+                vm.error != null && vm.pedidos.isEmpty() -> Column {
+                    Text(vm.error.orEmpty(), color = MaterialTheme.colorScheme.error)
+                    TextButton(onClick = { vm.cargar() }) {
+                        Text("Reintentar", color = KafeWhite)
+                    }
+                }
+
+                vm.pedidos.isEmpty() -> Text("Todavía no hay pedidos", color = KafeGray)
+
+                vm.pedidosFiltrados.isEmpty() ->
+                    Text("No hay pedidos con este estado", color = KafeGray)
+
+                else -> LazyColumn(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    items(vm.pedidosFiltrados, key = { "${it.uid}_${it.id}" }) { pedido ->
+                        val colorEstado = pedido.estado.colorEstado()
+                        val actualizando = vm.estaActualizando(pedido)
+
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(KafeCard)
+                                .padding(12.dp)
+                        ) {
+                            Text(
+                                pedido.fecha.comoFecha(),
+                                color = KafeGray,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                            Surface(
+                                shape = RoundedCornerShape(50),
+                                color = colorEstado.copy(alpha = 0.16f)
+                            ) {
+                                Text(
+                                    text = pedido.estado.etiquetaEstado(),
+                                    color = colorEstado,
+                                    style = MaterialTheme.typography.titleSmall,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(6.dp))
+                            pedido.items.forEach {
+                                Text("${it.cantidad} x ${it.nombre}", color = KafeWhite)
+                            }
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = (if (pedido.tipoEntrega == "DOMICILIO") "A domicilio" else "Recoger en tienda") +
+                                    " · " + pedido.metodoPago,
+                                color = KafeGray,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                            if (pedido.tipoEntrega == "DOMICILIO") {
+                                Text(
+                                    text = "Dirección: ${pedido.direccion.ifBlank { "No disponible" }}",
+                                    color = KafeGray,
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                            Text(
+                                pedido.total.comoDinero(),
+                                color = KafeWhite,
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            Row(
+                                modifier = Modifier.horizontalScroll(rememberScrollState()),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                EstadoPedido.todos.forEach { estado ->
+                                    OutlinedButton(
+                                        onClick = { vm.cambiarEstado(pedido, estado) },
+                                        enabled = !actualizando && pedido.estado != estado
+                                    ) {
+                                        Text(estado.etiquetaEstado(), color = KafeWhite)
+                                    }
+                                }
+                                if (actualizando) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(24.dp).padding(4.dp),
+                                        color = KafeWhite,
+                                        strokeWidth = 2.dp
+                                    )
+                                }
                             }
                         }
                     }
@@ -79,4 +164,14 @@ fun AdminPedidosScreen(onAtras: () -> Unit) {
             }
         }
     }
+}
+
+private fun String.etiquetaEstado(): String =
+    lowercase().replaceFirstChar { it.uppercase() }
+
+private fun String.colorEstado(): Color = when (this) {
+    EstadoPedido.PENDIENTE -> Color(0xFFFFC107)
+    EstadoPedido.PREPARADO -> Color(0xFF64B5F6)
+    EstadoPedido.ENTREGADO -> Color(0xFF81C784)
+    else -> KafeGray
 }
