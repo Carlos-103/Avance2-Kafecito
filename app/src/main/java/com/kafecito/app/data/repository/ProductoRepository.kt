@@ -3,6 +3,8 @@ package com.kafecito.app.data.repository
 import com.kafecito.app.R
 import com.kafecito.app.data.model.Producto
 import kotlinx.coroutines.tasks.await
+import com.google.firebase.firestore.DocumentSnapshot
+import kotlinx.coroutines.CancellationException
 
 /**
  * Catálogo de productos que usa toda la app (Home, Detalle, Favoritos, Repetir pedido).
@@ -48,7 +50,34 @@ object ProductoRepository {
     // Los 5 productos iniciales los carga el dueño del repositorio en la consola de Firebase.
     // =====================================================================
     suspend fun cargar() {
-        // Pendiente.
+        try {
+            val snap = FirestorePaths.productos().get().await()
+            val productos = snap.documents.mapNotNull { it.aProducto() }
+
+            // Si no hay documentos válidos, se conserva el catálogo local.
+            if (productos.isNotEmpty()) {
+                cache = productos.sortedBy { it.id }
+            }
+        } catch (e: CancellationException) {
+            throw e // no se debe tragar la cancelación de la corutina
+        } catch (e: Exception) {
+            // Si la lectura falla, se deja el catálogo local (no vaciar la app).
+        }
+    }
+    private fun DocumentSnapshot.aProducto(): Producto? {
+        val id = (get("id") as? Number)?.toInt() ?: id.toIntOrNull() ?: return null
+        val nombre = getString("nombre") ?: return null
+        val precio = (get("precio") as? Number)?.toDouble() ?: return null
+
+        return Producto(
+            id = id,
+            nombre = nombre,
+            descripcion = getString("descripcion") ?: "",
+            precio = precio,
+            stock = (get("stock") as? Number)?.toInt() ?: 0,
+            categoria = getString("categoria") ?: "",
+            imagen = imagenes[getString("imagen")]
+        )
     }
 
     // =====================================================================
