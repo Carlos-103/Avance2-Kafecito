@@ -1,5 +1,4 @@
-package com.kafecito.app.ui.viewmodel
-
+package com.kafecito.app.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kafecito.app.data.model.Pedido
