@@ -27,10 +27,12 @@ fun AdminPedidosScreen(onAtras: () -> Unit) {
     val vm: AdminPedidosViewModel = viewModel()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(vm.error) {
+LaunchedEffect(vm.error) {
+    // Si la lista está vacía, el error ya se muestra en pantalla con "Reintentar".
+    if (vm.pedidos.isNotEmpty()) {
         vm.error?.let { snackbarHostState.showSnackbar(it) }
     }
-
+}
     Scaffold(
         containerColor = KafeBlack,
         snackbarHost = { SnackbarHost(snackbarHostState) }
