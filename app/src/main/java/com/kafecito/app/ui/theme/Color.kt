@@ -14,7 +14,7 @@ val KafeChip = Color(0xFFF0F0F0)
 // Color temporal para productos con imágenes pendientes
 val KafeImagePlaceholder = Color(0xFFD9D9D9)
 // Texto secundario y descripciones.
-val KafeGray = Color(0xFF9E9E9E)
+val KafeGray = Color(0xFF737373)
 // Borde de los campos de texto sobre fondos oscuros.
 val KafeBorderDark = Color(0xFF555555)
 // Color utilizado para mostrar errores.

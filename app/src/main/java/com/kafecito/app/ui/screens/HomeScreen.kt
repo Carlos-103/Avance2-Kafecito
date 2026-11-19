@@ -25,6 +25,7 @@ import com.kafecito.app.data.repository.ProductoRepository
 import com.kafecito.app.ui.components.KafeHeader
 import com.kafecito.app.ui.theme.*
 import com.kafecito.app.ui.components.ProductoImagen
+import androidx.compose.runtime.LaunchedEffect
 
 
 /**
@@ -46,9 +47,13 @@ fun HomeScreen(
     // Cuando el estado cambia, Compose actualiza la interfaz que depende de él.
     var categoriaSeleccionada by remember { mutableStateOf(ProductoRepository.categorias.first()) }
     var busqueda by remember { mutableStateOf("") }
+    // Se incrementa cuando termina la carga de Firestore para forzar el refresco de la lista.
+    var versionCatalogo by remember { mutableIntStateOf(0) }
     // Filtra los productos según la categoría seleccionada y el texto de búsqueda.
-    val productos = ProductoRepository.obtenerProductos(categoriaSeleccionada)
-        .filter { it.nombre.contains(busqueda, ignoreCase = true) }
+    val productos = remember(categoriaSeleccionada, busqueda, versionCatalogo) {
+        ProductoRepository.obtenerProductos(categoriaSeleccionada)
+            .filter { it.nombre.contains(busqueda, ignoreCase = true) }
+    }
 
     Column(
         modifier = Modifier
@@ -145,6 +150,8 @@ private fun CategoriaChip(texto: String, seleccionada: Boolean, onClick: () -> U
  * o agregarlo directamente al carrito.
  */
 @Composable
+
+
 private fun ProductoCard(
     producto: Producto,
     onClick: () -> Unit,
