@@ -1,5 +1,4 @@
 package com.kafecito.app.ui.screens
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -15,9 +14,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kafecito.app.ui.components.KafeTopBar
 import com.kafecito.app.ui.theme.*
-import com.kafecito.app.ui.viewmodel.ReportesData
-import com.kafecito.app.ui.viewmodel.ReportesUiState
-import com.kafecito.app.ui.viewmodel.ReportesViewModel
+import com.kafecito.app.viewmodel.ReportesData
+import com.kafecito.app.viewmodel.ReportesUiState
+import com.kafecito.app.viewmodel.ReportesViewModel
 import com.kafecito.app.util.comoDinero
 
 /**
