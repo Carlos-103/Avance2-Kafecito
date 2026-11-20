@@ -29,16 +29,6 @@ object ProductoRepository {
 
     fun obtenerProducto(id: Int): Producto? = cache.find { it.id == id }
 
-    /** Nombre guardado en Firestore -> imagen de res/drawable. Sin nombre válido no hay imagen. */
-    val imagenes: Map<String, Int> = mapOf(
-        "cappucino" to R.drawable.cappucino,
-        "cafe_americano" to R.drawable.cafe_americano,
-        "pastel_chocolate" to R.drawable.pastel_chocolate,
-        "sprite" to R.drawable.sprite,
-        "desayuno_tipico" to R.drawable.desayuno_tipico
-    )
-
-
     suspend fun cargar() {
         try {
             val snap = FirestorePaths.productos().get().await()
@@ -62,7 +52,6 @@ object ProductoRepository {
             precio = precio,
             stock = (get("stock") as? Number)?.toInt() ?: 0,
             categoria = getString("categoria") ?: "",
-            imagen = imagenes[getString("imagen")],
             imagenUrl = getString("imagenUrl")?.takeIf { it.isNotBlank() }
         )
     }
@@ -78,7 +67,6 @@ object ProductoRepository {
 
     /** Crea o edita un producto en Firestore y actualiza la copia en memoria. */
     suspend fun guardar(producto: Producto) {
-        val nombreImagen = imagenes.entries.firstOrNull { it.value == producto.imagen }?.key
         val datos = hashMapOf<String, Any?>(
             "id" to producto.id,
             "nombre" to producto.nombre,
@@ -86,7 +74,6 @@ object ProductoRepository {
             "precio" to producto.precio,
             "stock" to producto.stock,
             "categoria" to producto.categoria,
-            "imagen" to nombreImagen,
             "imagenUrl" to producto.imagenUrl
         )
         FirestorePaths.producto(producto.id).set(datos).await()
