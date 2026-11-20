@@ -59,7 +59,7 @@ object DireccionRepository {
         val ciudad = getString("ciudad") ?: return null
         return Direccion(id = id, alias = alias, calle = calle, ciudad = ciudad)
     }
-    // Actualiza los datos de una dirección existente y registra la fecha del cambio.
+    // Actualiza una dirección existente y registra la fecha de modificacion.
     suspend fun actualizar(id: String, alias: String, calle: String, ciudad: String): Direccion {
         direccionesRef().document(id).update(
             mapOf(

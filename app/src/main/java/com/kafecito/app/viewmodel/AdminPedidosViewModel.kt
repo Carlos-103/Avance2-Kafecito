@@ -21,12 +21,14 @@ class AdminPedidosViewModel : ViewModel() {
         private set
     var filtroEstado by mutableStateOf<String?>(null)
         private set
+    // Devuelve los pedidos según el estado seleccionado.
     val pedidosFiltrados: List<Pedido>
         get() = pedidos.filter { filtroEstado == null || it.estado == filtroEstado }
     var cargando by mutableStateOf(true)
         private set
     var error by mutableStateOf<String?>(null)
         private set
+    // Identifica los pedidos cuyo estado se está actualizando.
     var actualizandoIds by mutableStateOf<Set<String>>(emptySet())
         private set
 

@@ -7,39 +7,38 @@ import com.google.firebase.firestore.DocumentSnapshot
 import kotlinx.coroutines.CancellationException
 
 /**
- * Catálogo de productos que usa toda la app (Home, Detalle, Favoritos, Repetir pedido).
+ * Gestiona el catálogo de productos de Kafecito mediante Firestore.
+ * Mantiene una copia en memoria para facilitar las consultas desde las pantallas.
  *
- * Por ahora devuelve el catálogo local de KafecitoRepository, así la app sigue funcionando
- * mientras se migra a Firestore. Las pantallas ya llaman a este objeto, así que al
- * implementar los TODO de abajo no hay que tocar las demás pantallas.
- *
- * Formato de cada documento en Firestore: productos/{id}
- *   id (número), nombre, descripcion, precio (número), stock (número), categoria,
- *   imagen (texto con el nombre del recurso, por ejemplo "cappucino"; opcional).
+ * También permite crear, editar y eliminar productos.
  */
 object ProductoRepository {
 
     val categorias: List<String> = KafecitoRepository.categorias
 
-    // Copia en memoria del catálogo. Así obtenerProducto(id) sigue siendo una función normal.
+    // Copia en memoria del catálogo para consultar productos sin realizar otra lectura de Firestore.
     private var cache: List<Producto> = emptyList()
 
     fun obtenerProductos(categoria: String? = null): List<Producto> =
         if (categoria == null) cache else cache.filter { it.categoria == categoria }
 
     fun obtenerProducto(id: Int): Producto? = cache.find { it.id == id }
-
+    /**
+     * Carga los productos desde Firestore y actualiza la copia en memoria.
+     * Si ocurre un error de lectura, conserva el catálogo disponible.
+     */
     suspend fun cargar() {
         try {
             val snap = FirestorePaths.productos().get().await()
             val productos = snap.documents.mapNotNull { it.aProducto() }
             cache = productos.sortedBy { it.id }
         } catch (e: CancellationException) {
-            throw e // no se debe tragar la cancelación de la corutina
+            throw e // Permite que la cancelación de la corrutina se propague correctamente.
         } catch (e: Exception) {
-            // Si la lectura falla, se deja el catálogo local (no vaciar la app).
+            // Si falla la lectura, se conserva el catálogo anterior.
         }
     }
+    /** Convierte un documento de Firestore en un producto; devuelve null si faltan datos obligatorios. */
     private fun DocumentSnapshot.aProducto(): Producto? {
         val id = (get("id") as? Number)?.toInt() ?: id.toIntOrNull() ?: return null
         val nombre = getString("nombre") ?: return null
@@ -56,16 +55,10 @@ object ProductoRepository {
         )
     }
 
-    // =====================================================================
-    // Administración de productos (solo administrador; lo hacen cumplir las reglas).
-    // Ya implementado por el dueño del repositorio. La pantalla de Ricardo usa
-    // AdminProductosViewModel, que llama a estas funciones.
-    // =====================================================================
-
-    /** Id para un producto nuevo: el mayor id actual + 1. */
+    /** Obtiene el siguiente ID disponible a partir del mayor ID del catálogo en memoria. */
     fun siguienteId(): Int = (cache.maxOfOrNull { it.id } ?: 0) + 1
 
-    /** Crea o edita un producto en Firestore y actualiza la copia en memoria. */
+    /** Guarda o actualiza un producto en Firestore y sincroniza la copia en memoria. */
     suspend fun guardar(producto: Producto) {
         val datos = hashMapOf<String, Any?>(
             "id" to producto.id,
@@ -80,7 +73,7 @@ object ProductoRepository {
         cache = (cache.filter { it.id != producto.id } + producto).sortedBy { it.id }
     }
 
-    /** Borra un producto de Firestore y de la copia en memoria. */
+    /** Elimina un producto de Firestore y de la copia en memoria. */
     suspend fun borrar(id: Int) {
         FirestorePaths.producto(id).delete().await()
         cache = cache.filter { it.id != id }

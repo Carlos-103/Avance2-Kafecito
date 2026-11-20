@@ -19,8 +19,7 @@ object Validaciones {
     /**
      * Valida el formulario de productos del administrador: nombre no vacío,
      * precio mayor que 0 (máximo 1000) y stock mayor o igual a 0.
-     *
-     * Devuelve un mapa campo -> mensaje con los errores (vacío).
+     * Devuelve un mapa con los errores asociados a cada campo; si está vacío, no hay errores.
      */
     fun validarProducto(nombre: String, precio: String, stock: String): Map<String, String> {
         val errores = mutableMapOf<String, String>()

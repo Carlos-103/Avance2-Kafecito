@@ -21,11 +21,11 @@ object FirestorePaths {
     fun metodosPago(uid: String): CollectionReference = usuario(uid).collection("metodosPago")
     fun pedidos(uid: String): CollectionReference = usuario(uid).collection("pedidos")
 
-    /** Catalogo de productos (colección raíz). El id del documento es el id del producto. */
+    /** Obtiene la colección raíz de productos. El ID de cada documento corresponde al ID del producto. */
     fun productos(): CollectionReference = db.collection("productos")
     fun producto(id: Int): DocumentReference = productos().document(id.toString())
 
-    /** Todos los pedidos de todos los usuarios (solo para el administrador). */
+    /** Adquiere los pedidos de todos los usuarios para las consultas del administrador. */
     fun todosLosPedidos(): Query = db.collectionGroup("pedidos")
 
     /** Obtiene el ID del usuario con sesión iniciada. Lanza un error si no hay una sesión activa. */

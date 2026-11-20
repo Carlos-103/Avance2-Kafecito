@@ -21,7 +21,7 @@ object MetodoPagoRepository {
 
     /**
      * Guarda un metodo de pago después de validar la marca y los últimos cuatro dígitos.
-     * Solo almacena los datos necesarios, nunca el número completo de la tarjeta.
+     * Por seguridad, nunca almacena el número completo de la tarjeta.
      */
     suspend fun agregar(metodo: MetodoPago) {
         val marca = metodo.marca.trim()

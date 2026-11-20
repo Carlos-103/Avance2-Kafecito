@@ -25,7 +25,7 @@ object PedidoRepository {
     suspend fun crear(pedido: Pedido): String {
         require(pedido.items.isNotEmpty()) { "El pedido no tiene productos" }
         val uid = FirestorePaths.uidActual()
-        val ref = FirestorePaths.pedidos(uid).document()   // Firestore genera el id
+        val ref = FirestorePaths.pedidos(uid).document()  // Firestore genera automáticamente el ID del pedido.
         ref.set(pedido.copy(id = ref.id, uid = uid)).await()
         return ref.id
     }
@@ -53,23 +53,17 @@ object PedidoRepository {
     /** Calcula los puntos acumulados sumando los puntos obtenidos en cada pedido. */
     suspend fun puntosTotales(): Int = listar().sumOf { puntosDe(it.total) }
 
-    // =====================================================================
-    // TODO(STOCK) - Kevin
-    // Crea el pedido Y descuenta el stock en una sola operacion (transaccion).
-    // Esta funcion ya viene escrita. Lo que falta:
-    //   1. En PagarViewModel, cambiar PedidoRepository.crear(pedido) por
-    //      PedidoRepository.crearConStock(pedido).
-    //   2. Mostrar un mensaje claro si no hay stock (el error trae el nombre del producto).
-    //   3. En PedidosScreen, mostrar el estado del pedido (pedido.estado).
-    // Probar con internet: una transaccion falla sin conexion (no queda en cola).
-    // Nota: el mensaje de la excepcion puede venir envuelto; revisar en Logcat.
-    // =====================================================================
+    /**
+     * Crea un pedido y descuenta las unidades correspondientes del inventario.
+     * Ambas operaciones se realizan en una transacción para evitar inconsistencias
+     * si no hay stock suficiente o ocurre algún error.
+     */
     suspend fun crearConStock(pedido: Pedido): String {
         require(pedido.items.isNotEmpty()) { "El pedido no tiene productos" }
         val uid = FirestorePaths.uidActual()
         val refPedido = FirestorePaths.pedidos(uid).document()
         FirebaseFirestore.getInstance().runTransaction { tx ->
-            // 1) Primero se leen todos los productos (en una transaccion las lecturas van antes de escribir).
+            // Primero se consultan todos los productos, antes de realizar cualquier escritura.
             val nuevosStocks = pedido.items.map { item ->
                 val ref = FirestorePaths.producto(item.productoId)
                 val stock = tx.get(ref).getLong("stock")?.toInt() ?: 0
@@ -78,7 +72,7 @@ object PedidoRepository {
                 }
                 ref to (stock - item.cantidad)
             }
-            // 2) Despues se descuenta el stock y se guarda el pedido.
+            // Después se actualiza el inventario y se guarda el pedido.
             nuevosStocks.forEach { (ref, nuevo) -> tx.update(ref, "stock", nuevo) }
             tx.set(refPedido, pedido.copy(id = refPedido.id, uid = uid, estado = EstadoPedido.PENDIENTE))
             null
@@ -86,27 +80,20 @@ object PedidoRepository {
         return refPedido.id
     }
 
-    // =====================================================================
-    // TODO(ADMIN-PEDIDOS) - Jose
-    // Estas dos funciones ya vienen escritas; usalas desde AdminPedidosViewModel.
-    // Requieren: reglas de Firestore publicadas y el indice de grupo de coleccion
-    // por "fecha" (si falta, el error en Logcat trae un enlace para crearlo).
-    // =====================================================================
-
-    /** Pedidos de TODOS los usuarios, del mas reciente al mas antiguo (solo administrador). */
+    /** Adquiere los pedidos de todos los usuarios, ordenados del más reciente al más antiguo. */
     suspend fun listarTodos(): List<Pedido> {
         val snap = FirestorePaths.todosLosPedidos()
             .orderBy("fecha", Query.Direction.DESCENDING)
             .get()
             .await()
         return snap.documents.mapNotNull { doc ->
-            // El uid del dueno es el id del documento "usuarios/{uid}" que contiene al pedido.
+            // Obtiene el UID del propietario desde la ruta del documento en Firestore.
             doc.toObject(Pedido::class.java)
                 ?.copy(id = doc.id, uid = doc.reference.parent.parent?.id ?: "")
         }
     }
 
-    /** Cambia el estado de un pedido (PENDIENTE, PREPARADO o ENTREGADO). Solo administrador. */
+    /** Actualiza el estado de un pedido. Esta operación está destinada al administrador. */
     suspend fun cambiarEstado(uid: String, pedidoId: String, estado: String) {
         FirestorePaths.pedidos(uid).document(pedidoId).update("estado", estado).await()
     }

@@ -21,7 +21,7 @@ class MetodosPagoViewModel : ViewModel() {
         private set
     var error by mutableStateOf<String?>(null)
         private set
-    // Indica si se está guardando un metodo de pago para evitar envíos duplicados.
+    // Indica si hay una operación de guardado en curso para evitar envíos duplicados.
     var guardando by mutableStateOf(false)
         private set
 

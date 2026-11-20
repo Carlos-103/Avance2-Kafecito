@@ -54,7 +54,7 @@ private fun ContenidoReportes(datos: ReportesData) {
         modifier = Modifier.verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Resumen general
+        // Muestra el resumen general de ventas y pedidos.
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Tarjeta(modifier = Modifier.weight(1f)) {
                 Text("Pedidos realizados", color = KafeGray, style = MaterialTheme.typography.bodySmall)
@@ -74,7 +74,7 @@ private fun ContenidoReportes(datos: ReportesData) {
             }
         }
 
-        // Más vendidos
+        // Muestra los productos ordenados por cantidad de ventas.
         Seccion("Productos más vendidos") {
             if (datos.masVendidos.isEmpty()) {
                 Text("Aún no hay ventas", color = KafeGray)
@@ -85,7 +85,7 @@ private fun ContenidoReportes(datos: ReportesData) {
             }
         }
 
-        // Stock bajo
+        // Muestra los productos que tienen pocas unidades disponibles.
         Seccion("Productos con poco stock") {
             if (datos.stockBajo.isEmpty()) {
                 Text("Todo el inventario está en buen nivel", color = KafeGray)
@@ -96,7 +96,7 @@ private fun ContenidoReportes(datos: ReportesData) {
             }
         }
 
-        // Pedidos por estado
+        // Muestra la cantidad de pedidos agrupados por estado.
         Seccion("Pedidos por estado") {
             datos.pedidosPorEstado.forEach { (estado, cantidad) ->
                 Fila(estado.lowercase().replaceFirstChar { it.uppercase() }, "$cantidad")
@@ -119,7 +119,7 @@ private fun Tarjeta(modifier: Modifier = Modifier, contenido: @Composable Column
     )
 }
 
-/** Sección con título dentro de una tarjeta a todo el ancho. */
+/** Sección con título dentro de una tarjeta a todo el ancho.*/
 @Composable
 private fun Seccion(titulo: String, contenido: @Composable ColumnScope.() -> Unit) {
     Tarjeta(modifier = Modifier.fillMaxWidth()) {

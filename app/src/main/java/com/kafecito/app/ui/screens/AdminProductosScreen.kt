@@ -33,12 +33,9 @@ import com.kafecito.app.util.comoDinero
 import com.kafecito.app.viewmodel.AdminProductosViewModel
 
 /**
- * Gestión de productos del administrador: lista con precio y stock, y un formulario
- * para crear o editar un producto. También permite borrarlo (con confirmación).
- *
- * La pantalla solo muestra el estado de AdminProductosViewModel y llama a sus funciones;
- * no accede a Firestore directamente. Las reglas de Firestore son las que garantizan
- * que solo un administrador pueda guardar o borrar.
+ * Permite al administrador consultar, crear, editar y eliminar productos.
+ * La pantalla utiliza AdminProductosViewModel para gestionar las operaciones,
+ * mientras que las reglas de Firestore controlan el acceso a los datos.
  */
 @Composable
 fun AdminProductosScreen(onAtras: () -> Unit) {
@@ -319,7 +316,7 @@ private fun ChipCategoria(texto: String, seleccionada: Boolean, onClick: () -> U
         )
     }
 }
-
+/** Muestra un mensaje de validación debajo del campo correspondiente. */
 @Composable
 private fun ErrorCampo(mensaje: String) {
     Text(

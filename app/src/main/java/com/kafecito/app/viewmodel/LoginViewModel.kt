@@ -55,7 +55,7 @@ class LoginViewModel : ViewModel() {
         }
     }
 
-    /** Inicia sesión con Google utilizando el contexto de una Activity. */
+    /** Inicia sesión con Google utilizando el contexto de la aplicación. */
     fun loginConGoogle(context: Context, onExito: () -> Unit) {
         if (cargando) return
         infoMensaje = null

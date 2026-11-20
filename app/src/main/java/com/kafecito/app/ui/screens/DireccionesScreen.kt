@@ -243,7 +243,7 @@ fun DireccionesScreen(onAtras: () -> Unit) {
         }
     }
 }
-
+/** Muestra un mensaje de error debajo del campo correspondiente. */
 @Composable
 private fun ErrorTexto(mensaje: String) {
     Text(

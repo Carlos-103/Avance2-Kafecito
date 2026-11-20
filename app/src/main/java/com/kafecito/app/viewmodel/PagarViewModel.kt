@@ -55,7 +55,7 @@ class PagarViewModel : ViewModel() {
         }
     }
 
-    /** Guarda el pedido en Firestore y ejecuta [onExito] únicamente si se guarda correctamente. */
+    /** Guarda el pedido en Firestore y ejecuta [onExito] únicamente si se confirma correctamente. */
     fun confirmar(pedido: Pedido, onExito: () -> Unit) {
         if (procesando) return
         procesando = true

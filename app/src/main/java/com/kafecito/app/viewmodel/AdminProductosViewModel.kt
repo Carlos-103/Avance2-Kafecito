@@ -40,7 +40,9 @@ class AdminProductosViewModel : ViewModel() {
 
     fun limpiarError() { error = null }
 
-    /** Crea o edita. `onListo` se ejecuta solo si se guardó bien (por ejemplo, para cerrar el formulario). */
+    /**
+     * Crea o edita un producto. Ejecuta `onListo` únicamente cuando se guarda correctamente.
+     */
     fun guardar(producto: Producto, onListo: () -> Unit = {}) {
         viewModelScope.launch {
             guardando = true

@@ -30,7 +30,7 @@ class CarritoViewModel : ViewModel() {
         }
     }
 
-    /** Cambia la cantidad de un producto ya agregado, respetando el stock. */
+    /** Actualiza la cantidad de un producto en el carrito sin superar el stock disponible. */
     fun cambiarCantidad(productoId: Int, nuevaCantidad: Int) {
         val indice = _items.indexOfFirst { it.producto.id == productoId }
         if (indice < 0) return

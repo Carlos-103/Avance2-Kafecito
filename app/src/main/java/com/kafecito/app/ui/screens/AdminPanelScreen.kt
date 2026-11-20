@@ -19,8 +19,10 @@ import com.kafecito.app.ui.components.KafeTopBar
 import com.kafecito.app.ui.theme.*
 
 /**
- * Menú del administrador. Solo se llega aquí desde el Perfil si el rol es ADMIN.
- * (TODO(ROLES): las reglas de Firestore son las que protegen los datos de verdad.)
+ * Muestra el menú principal de administración de Kafecito.
+ * Permite acceder a la gestión de productos, pedidos y reportes.
+ *
+ * El acceso se controla mediante el rol ADMIN.
  */
 @Composable
 fun AdminPanelScreen(

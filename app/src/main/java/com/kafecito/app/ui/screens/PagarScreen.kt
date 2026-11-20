@@ -108,7 +108,7 @@ fun PagarScreen(
         Spacer(modifier = Modifier.height(20.dp))
         Button(
             onClick = {
-                // Se toma una copia de los datos actuales del carrito para crear el pedido.
+                // Construye el pedido con los datos actuales del carrito y las opciones seleccionadas.
                 val pedido = Pedido(
                     fecha = System.currentTimeMillis(),
                     tipoEntrega = entrega,

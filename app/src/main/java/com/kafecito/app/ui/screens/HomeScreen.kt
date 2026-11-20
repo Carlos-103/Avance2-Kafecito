@@ -26,7 +26,6 @@ import com.kafecito.app.ui.components.KafeHeader
 import com.kafecito.app.ui.theme.*
 import com.kafecito.app.ui.components.ProductoImagen
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.unit.sp
 
 /**

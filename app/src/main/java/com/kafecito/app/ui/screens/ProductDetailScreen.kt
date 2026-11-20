@@ -167,7 +167,7 @@ fun ProductDetailScreen(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // El botón muestra el total: precio * cantidad (ej. "Agregar pedido $3.50")
+        // Muestra el precio total según la cantidad seleccionada.
         Button(
             onClick = {
                 onAgregar(producto, cantidad)

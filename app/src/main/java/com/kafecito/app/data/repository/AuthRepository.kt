@@ -48,7 +48,7 @@ object AuthRepository {
 
     fun uidActual(): String? = usuarioActual?.uid
 
-    /** Nombre para mostrar en pantalla (Home, Perfil). "Invitado" si no hay sesion. */
+    /** Obtiene el nombre para mostrar en la aplicación o utiliza "Invitado" si no hay una sesión activa. */
     fun nombreActual(): String = usuarioActual?.let { usuario ->
         usuario.displayName?.takeIf { it.isNotBlank() } ?: usuario.email?.substringBefore("@")
     } ?: "Invitado"
@@ -80,7 +80,7 @@ object AuthRepository {
         }
     }
 
-    /** Inicia sesion con correo y contraseña. */
+    /** Inicia sesión con correo y contraseña y asegura que el perfil exista en Firestore. */
     suspend fun login(correo: String, password: String): String? {
         return try {
             val resultado = auth.signInWithEmailAndPassword(correo, password).await()
@@ -155,9 +155,9 @@ object AuthRepository {
     }
 
     /**
-     * Indica si el usuario con sesión iniciada es administrador (rol == "ADMIN").
-     * Es solo comodidad visual: la seguridad real la dan las reglas de Firestore.
-     * Mientras no se implemente devuelve false y nadie ve el panel de administración.
+     * Comprueba si el usuario tiene el rol ADMIN en su perfil de Firestore.
+     * Esta comprobación controla la visualización de opciones administrativas;
+     * los permisos reales deben garantizarse mediante las reglas de Firestore.
      */
     suspend fun esAdmin(): Boolean = perfilActual()?.rol == "ADMIN"
 

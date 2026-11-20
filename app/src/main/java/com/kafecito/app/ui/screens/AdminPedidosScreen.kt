@@ -22,7 +22,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.style.TextAlign
 
-/** Pedidos de todos los clientes, con filtros y acciones de estado para el administrador. */
+/**
+ * Muestra los pedidos de todos los clientes para su gestión administrativa.
+ * Permite filtrar los pedidos por estado y actualizar su estado.
+ */
 @Composable
 fun AdminPedidosScreen(onAtras: () -> Unit) {
     val vm: AdminPedidosViewModel = viewModel()

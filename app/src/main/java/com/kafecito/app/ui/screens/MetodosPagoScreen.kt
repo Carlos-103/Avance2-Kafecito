@@ -65,7 +65,7 @@ fun MetodosPagoScreen(onAtras: () -> Unit) {
         Spacer(modifier = Modifier.height(12.dp))
         Button(
             onClick = {
-                // Si la validación es correcta, se agrega el metodo y se limpian los campos.
+                // Si el metodo se agrega correctamente, limpia los campos del formulario.
                 if (vm.agregar(marca, ultimos4)) {
                     marca = ""
                     ultimos4 = ""

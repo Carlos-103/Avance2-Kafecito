@@ -47,7 +47,7 @@ object Rutas {
     const val PEDIDOS = "pedidos"
     const val DETALLE = "detalle/{productoId}"
 
-    // Panel del administrador.
+    // Rutas del panel del administrador.
     const val INICIO = "inicio"
 
     const val ADMIN = "admin"
@@ -64,8 +64,9 @@ private val rutasConBarra = setOf(Rutas.HOME, Rutas.FAVORITOS, Rutas.CONTACTO, R
 /**
  * Configura la navegación entre las pantallas de Kafecito.
  *
- * Flujo principal:  Welcome -> Login / Registro -> Home -> Detalle -> Carrito
- * Barra inferior:   Home | Favoritos | Contacto | Perfil
+ * Flujo principal: Welcome → Login / Registro → Home → Detalle → Carrito.
+ * Administración: Inicio → Panel de administración.
+ * Barra inferior: Home | Favoritos | Contacto | Perfil.
  */
 @Composable
 fun KafecitoNavGraph(navController: NavHostController = rememberNavController()) {
@@ -75,7 +76,7 @@ fun KafecitoNavGraph(navController: NavHostController = rememberNavController())
     // Comparte el mismo carrito entre las pantallas de Home, Detalle y Carrito.
     val carritoVM: CarritoViewModel = viewModel()
 
-    // Si ya existe una sesión de Firebase, el usuario entra directamente al Home.
+    // Si ya existe una sesión de Firebase, el usuario entra directamente al flujo correspondiente.
     val destinoInicial = remember {
         if (AuthRepository.uidActual() != null) Rutas.INICIO else Rutas.WELCOME
     }
