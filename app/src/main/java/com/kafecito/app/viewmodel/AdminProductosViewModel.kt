@@ -30,7 +30,12 @@ class AdminProductosViewModel : ViewModel() {
         private set
     var error by mutableStateOf<String?>(null)
         private set
-
+    init {
+        viewModelScope.launch {
+            ProductoRepository.cargar()
+            productos = ProductoRepository.obtenerProductos()
+        }
+    }
     fun siguienteId(): Int = ProductoRepository.siguienteId()
 
     fun limpiarError() { error = null }

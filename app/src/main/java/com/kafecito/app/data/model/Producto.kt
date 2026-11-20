@@ -12,5 +12,6 @@ data class Producto(
     val precio: Double,
     val stock: Int,
     val categoria: String,
-    @DrawableRes val imagen: Int? = null
+    @DrawableRes val imagen: Int? = null,
+    val imagenUrl: String? = null
 )

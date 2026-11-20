@@ -22,7 +22,7 @@ object ProductoRepository {
     val categorias: List<String> = KafecitoRepository.categorias
 
     // Copia en memoria del catálogo. Así obtenerProducto(id) sigue siendo una función normal.
-    private var cache: List<Producto> = KafecitoRepository.obtenerProductos()
+    private var cache: List<Producto> = emptyList()
 
     fun obtenerProductos(categoria: String? = null): List<Producto> =
         if (categoria == null) cache else cache.filter { it.categoria == categoria }
@@ -38,26 +38,12 @@ object ProductoRepository {
         "desayuno_tipico" to R.drawable.desayuno_tipico
     )
 
-    // =====================================================================
-    // TODO(CATALOGO-FS) - Carlos David
-    // Carga el catálogo desde Firestore y lo guarda en `cache`.
-    //   1. val snap = FirestorePaths.productos().get().await()
-    //   2. Convertir cada documento a Producto: id, nombre, descripcion, precio, stock,
-    //      categoria e imagen (buscar el texto en `imagenes`; si no existe, null).
-    //   3. Si la lectura falla o no hay documentos, dejar el catálogo local (no vaciar la app).
-    //   4. Llamarla al abrir Home: LaunchedEffect(Unit) { ProductoRepository.cargar() }
-    //      y refrescar la lista cuando termine (ver el TODO en HomeScreen).
-    // Los 5 productos iniciales los carga el dueño del repositorio en la consola de Firebase.
-    // =====================================================================
+
     suspend fun cargar() {
         try {
             val snap = FirestorePaths.productos().get().await()
             val productos = snap.documents.mapNotNull { it.aProducto() }
-
-            // Si no hay documentos válidos, se conserva el catálogo local.
-            if (productos.isNotEmpty()) {
-                cache = productos.sortedBy { it.id }
-            }
+            cache = productos.sortedBy { it.id }
         } catch (e: CancellationException) {
             throw e // no se debe tragar la cancelación de la corutina
         } catch (e: Exception) {
@@ -76,7 +62,8 @@ object ProductoRepository {
             precio = precio,
             stock = (get("stock") as? Number)?.toInt() ?: 0,
             categoria = getString("categoria") ?: "",
-            imagen = imagenes[getString("imagen")]
+            imagen = imagenes[getString("imagen")],
+            imagenUrl = getString("imagenUrl")?.takeIf { it.isNotBlank() }
         )
     }
 
@@ -99,7 +86,8 @@ object ProductoRepository {
             "precio" to producto.precio,
             "stock" to producto.stock,
             "categoria" to producto.categoria,
-            "imagen" to nombreImagen
+            "imagen" to nombreImagen,
+            "imagenUrl" to producto.imagenUrl
         )
         FirestorePaths.producto(producto.id).set(datos).await()
         cache = (cache.filter { it.id != producto.id } + producto).sortedBy { it.id }

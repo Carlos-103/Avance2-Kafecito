@@ -8,21 +8,32 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import com.kafecito.app.ui.theme.KafeImagePlaceholder
+import coil.compose.AsyncImage
 /**
  * Muestra la imagen de un producto o un espacio temporal
  * cuando todavía no se dispone de una imagen.
  */
 @Composable
-fun ProductoImagen(imagen: Int?, descripcion: String, modifier: Modifier = Modifier) {
-    if (imagen != null) {
-        Image(
+fun ProductoImagen(
+    imagen: Int?,
+    descripcion: String,
+    modifier: Modifier = Modifier,
+    url: String? = null
+) {
+    when {
+        // Imagen puesta por el administrador con un enlace.
+        !url.isNullOrBlank() -> AsyncImage(
+            model = url,
+            contentDescription = descripcion,
+            contentScale = ContentScale.Crop,
+            modifier = modifier.background(KafeImagePlaceholder)
+        )
+        imagen != null -> Image(
             painter = painterResource(imagen),
             contentDescription = descripcion,
             contentScale = ContentScale.Crop,
             modifier = modifier
         )
-    } else {
-        // Muestra un fondo gris cuando no hay imagen disponible.
-        Box(modifier = modifier.background(KafeImagePlaceholder))
+        else -> Box(modifier = modifier.background(KafeImagePlaceholder))
     }
 }

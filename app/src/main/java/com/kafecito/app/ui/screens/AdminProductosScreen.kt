@@ -55,14 +55,15 @@ fun AdminProductosScreen(onAtras: () -> Unit) {
     var stock by rememberSaveable { mutableStateOf("") }
     var categoria by rememberSaveable { mutableStateOf(ProductoRepository.categorias.first()) }
     var errores by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
-
     // Producto pendiente de confirmar su borrado.
     var porBorrar by remember { mutableStateOf<Producto?>(null) }
+    var imagenUrl by rememberSaveable { mutableStateOf("") }
+
 
     fun cerrarFormulario() {
         formAbierto = false
         editandoId = null
-        nombre = ""; descripcion = ""; precio = ""; stock = ""
+        nombre = ""; descripcion = ""; precio = ""; stock = "";imagenUrl=""
         categoria = ProductoRepository.categorias.first()
         errores = emptyMap()
     }
@@ -79,16 +80,20 @@ fun AdminProductosScreen(onAtras: () -> Unit) {
         precio = p.precio.toString()
         stock = p.stock.toString()
         categoria = p.categoria
+        imagenUrl = p.imagenUrl.orEmpty()
         errores = emptyMap()
         formAbierto = true
     }
 
     fun guardar() {
         if (vm.guardando) return
-        val nuevosErrores = Validaciones.validarProducto(nombre, precio, stock)
+        val urlLimpia = imagenUrl.trim()
+        val nuevosErrores = Validaciones.validarProducto(nombre, precio, stock).toMutableMap()
+        if (urlLimpia.isNotEmpty() && !urlLimpia.startsWith("https://")) {
+            nuevosErrores["imagenUrl"] = "El enlace debe empezar con https://"
+        }
         errores = nuevosErrores
         if (nuevosErrores.isNotEmpty()) return
-
         // Al editar se conserva la imagen que ya tenía el producto.
         val existente = vm.productos.firstOrNull { it.id == editandoId }
         val producto = Producto(
@@ -98,7 +103,8 @@ fun AdminProductosScreen(onAtras: () -> Unit) {
             precio = precio.trim().replace(',', '.').toDouble(),
             stock = stock.trim().toInt(),
             categoria = categoria,
-            imagen = existente?.imagen
+            imagen = existente?.imagen,
+            imagenUrl = urlLimpia.ifBlank { null }
         )
         // El formulario solo se cierra si el guardado fue exitoso.
         vm.guardar(producto) { cerrarFormulario() }
@@ -199,6 +205,15 @@ fun AdminProductosScreen(onAtras: () -> Unit) {
                         value = descripcion,
                         onChange = { descripcion = it.take(120) }
                     )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    KafeDarkField(
+                        label = "URL de la imagen",
+                        value = imagenUrl,
+                        onChange = { imagenUrl = it.take(300); errores = errores - "imagenUrl" },
+                        keyboardType = KeyboardType.Uri
+                    )
+                    errores["imagenUrl"]?.let { ErrorCampo(it) }
 
                     Spacer(modifier = Modifier.height(8.dp))
                     KafeDarkField(
