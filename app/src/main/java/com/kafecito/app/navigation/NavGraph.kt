@@ -138,6 +138,7 @@ fun KafecitoNavGraph(navController: NavHostController = rememberNavController())
 
             composable(Rutas.HOME) {
                 HomeScreen(
+                    cantidadCarrito = carritoVM.cantidadTotal,
                     onAbrirCarrito = { navController.navigate(Rutas.CARRITO) },
                     onAbrirDetalle = { id -> navController.navigate(Rutas.detalle(id)) },
                     onAgregar = { producto -> carritoVM.agregar(producto) }
@@ -202,8 +203,7 @@ fun KafecitoNavGraph(navController: NavHostController = rememberNavController())
 
             composable(Rutas.CONTACTO) { ContactScreen() }
 
-            // ---- Panel del administrador ----
-            // TODO(ROLES): ademas de ocultar la opcion, las reglas de Firestore son las que protegen.
+
             composable(Rutas.ADMIN) {
                 AdminPanelScreen(
                     onAbrirProductos = { navController.navigate(Rutas.ADMIN_PRODUCTOS) },
@@ -221,7 +221,7 @@ fun KafecitoNavGraph(navController: NavHostController = rememberNavController())
             composable(Rutas.REPORTES) { ReportesScreen(onAtras = { navController.popBackStack() }) }
 
             composable(Rutas.PERFIL) {
-                // TODO(ROLES): esAdmin() ya esta conectado; falta implementarla en AuthRepository.
+
                 var esAdmin by remember { mutableStateOf(false) }
                 LaunchedEffect(Unit) { esAdmin = AuthRepository.esAdmin() }
                 ProfileScreen(

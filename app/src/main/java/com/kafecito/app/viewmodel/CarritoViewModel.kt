@@ -63,6 +63,8 @@ class CarritoViewModel : ViewModel() {
     //Calcula el total a pagar sumando el subtotal y el IVA. 
     val total: Double get() = subtotal + iva
 
+    /** Cantidad total de unidades en el carrito (para el número sobre el ícono). */
+    val cantidadTotal: Int get() = _items.sumOf { it.cantidad }
     private companion object {
         // Tasa del IVA aplicada al subtotal.
         const val TASA_IVA = 0.13

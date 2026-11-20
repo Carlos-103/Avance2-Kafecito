@@ -1,11 +1,9 @@
 package com.kafecito.app.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -20,6 +18,9 @@ import com.kafecito.app.ui.theme.*
 import com.kafecito.app.util.comoDinero
 import com.kafecito.app.util.comoFecha
 import com.kafecito.app.viewmodel.AdminPedidosViewModel
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.style.TextAlign
 
 /** Pedidos de todos los clientes, con filtros y acciones de estado para el administrador. */
 @Composable
@@ -48,16 +49,25 @@ LaunchedEffect(vm.error) {
 
             if (vm.pedidos.isNotEmpty()) {
                 Row(
-                    modifier = Modifier.horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     (listOf(null to "Todos") + EstadoPedido.todos.map { estado ->
                         estado to estado.etiquetaEstado()
                     }).forEach { (estado, etiqueta) ->
                         FilterChip(
+                            modifier = Modifier.weight(1f),
                             selected = vm.filtroEstado == estado,
                             onClick = { vm.filtrarPorEstado(estado) },
-                            label = { Text(etiqueta) },
+                            label = {
+                                Text(
+                                    text = etiqueta,
+                                    maxLines = 1,
+                                    fontSize = 11.sp,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            },
                             colors = FilterChipDefaults.filterChipColors(
                                 containerColor = KafeCard,
                                 labelColor = KafeGray,
@@ -141,23 +151,24 @@ LaunchedEffect(vm.error) {
                                 style = MaterialTheme.typography.bodyLarge
                             )
                             Row(
-                                modifier = Modifier.horizontalScroll(rememberScrollState()),
-                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
                                 EstadoPedido.todos.forEach { estado ->
                                     OutlinedButton(
                                         onClick = { vm.cambiarEstado(pedido, estado) },
-                                        enabled = !actualizando && pedido.estado != estado
+                                        enabled = !actualizando && pedido.estado != estado,
+                                        contentPadding = PaddingValues(horizontal = 4.dp),
+                                        modifier = Modifier.weight(1f)
                                     ) {
-                                        Text(estado.etiquetaEstado(), color = KafeWhite)
+                                        Text(
+                                            estado.etiquetaEstado(),
+                                            color = KafeWhite,
+                                            maxLines = 1,
+                                            style = MaterialTheme.typography.labelMedium
+                                        )
                                     }
-                                }
-                                if (actualizando) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(24.dp).padding(4.dp),
-                                        color = KafeWhite,
-                                        strokeWidth = 2.dp
-                                    )
                                 }
                             }
                         }

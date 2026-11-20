@@ -26,7 +26,8 @@ import com.kafecito.app.ui.components.KafeHeader
 import com.kafecito.app.ui.theme.*
 import com.kafecito.app.ui.components.ProductoImagen
 import androidx.compose.runtime.LaunchedEffect
-
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.unit.sp
 
 /**
  * Pantalla principal que muestra el saludo, buscador, categorías
@@ -37,6 +38,7 @@ import androidx.compose.runtime.LaunchedEffect
 @Composable
 fun HomeScreen(
 // Comunica las acciones al componente padre, que gestiona la navegación y el carrito.
+    cantidadCarrito: Int,
     onAbrirCarrito: () -> Unit,
     onAbrirDetalle: (Int) -> Unit,
     onAgregar: (Producto) -> Unit
@@ -72,8 +74,29 @@ fun HomeScreen(
                     text = "¡Hola! ${AuthRepository.nombreActual()}",
                     style = MaterialTheme.typography.titleMedium
                 )
-                IconButton(onClick = onAbrirCarrito) {
-                    Icon(Icons.Filled.ShoppingCart, contentDescription = "Carrito")
+                Box {
+                    IconButton(onClick = onAbrirCarrito) {
+                        Icon(Icons.Filled.ShoppingCart, contentDescription = "Carrito")
+                    }
+                    if (cantidadCarrito > 0) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(top = 2.dp, end = 0.dp)
+                                .defaultMinSize(minWidth = 20.dp, minHeight = 20.dp)
+                                .background(ErrorRed, CircleShape)
+                                .padding(horizontal = 5.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = if (cantidadCarrito > 99) "99+" else "$cantidadCarrito",
+                                color = KafeWhite,
+                                fontSize = 12.sp,
+                                lineHeight = 12.sp,
+                                maxLines = 1
+                            )
+                        }
+                    }
                 }
             }
 

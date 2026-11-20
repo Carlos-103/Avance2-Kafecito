@@ -23,7 +23,7 @@ import com.kafecito.app.viewmodel.PagarViewModel
 
 /** ID fijo de la opción "Efectivo en tienda". No se guarda en Firestore. */
 private const val ID_EFECTIVO = "EFECTIVO"
-private const val TEXTO_EFECTIVO = "Efectivo en tienda"
+private const val TEXTO_EFECTIVO = "Efectivo"
 
 /**
  * Pantalla de pago que permite seleccionar el tipo de entrega,
