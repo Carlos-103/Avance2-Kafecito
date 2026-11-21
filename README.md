@@ -61,8 +61,6 @@ Kafecito es una aplicación móvil para consultar productos de una cafetería y 
 
 ## Usuarios de prueba
 
-| Rol | Correo             |
-|---|--------------------|---|
 | Cliente | david@hotmail.com  |
 | Administrador | admin@kafecito.com |
 
