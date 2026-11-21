@@ -81,4 +81,4 @@ https://www.figma.com/design/8qCOYIM8vNzCwimN1Lic9d/KAFECITO-APP?node-id=1-2&t=j
 
 ## Licencia
 
-Este proyecto se distribuye bajo la licencia **[COMPLETAR: Creative Commons, por ejemplo CC BY-NC-SA 4.0]**. El texto completo está en el archivo [`LICENSE`](LICENSE).
+Este proyecto se distribuye bajo la licencia **Creative Commons Atribución-NoComercial-CompartirIgual 4.0 (CC BY-NC-SA 4.0)**. El texto completo está en el archivo [`LICENSE`](LICENSE).
