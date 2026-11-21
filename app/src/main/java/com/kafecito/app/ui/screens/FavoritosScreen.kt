@@ -108,6 +108,7 @@ private fun FavoritoItem(
     ) {
         ProductoImagen(
             imagen = producto.imagen,
+            url = producto.imagenUrl,
             descripcion = producto.nombre,
             modifier = Modifier.size(48.dp).clip(RoundedCornerShape(8.dp))
         )

@@ -192,6 +192,7 @@ private fun ProductoCard(
 
         ProductoImagen(
             imagen = producto.imagen,
+            url = producto.imagenUrl,
             descripcion = producto.nombre,
             modifier = Modifier
                 .fillMaxWidth()

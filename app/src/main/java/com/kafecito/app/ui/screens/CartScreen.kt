@@ -106,6 +106,7 @@ private fun CartItem(
 
         ProductoImagen(
             imagen = item.producto.imagen,
+            url = item.producto.imagenUrl,
             descripcion = item.producto.nombre,
             modifier = Modifier
                 .size(48.dp)
